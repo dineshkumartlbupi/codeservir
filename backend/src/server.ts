@@ -54,10 +54,30 @@ app.use((req: Request, res: Response) => {
     res.status(404).json({ error: 'Route not found' });
 });
 
+// Debug endpoint to check environment configuration
+app.get('/debug-config', (req: Request, res: Response) => {
+    res.json({
+        environment: process.env.NODE_ENV,
+        isVercel: !!process.env.VERCEL,
+        hasOpenAIKey: !!process.env.OPENAI_API_KEY,
+        hasPineconeKey: !!process.env.PINECONE_API_KEY,
+        hasPineconeIndex: !!process.env.PINECONE_INDEX_NAME,
+        hasDBUrl: !!process.env.DATABASE_URL,
+        hasRedisUrl: !!process.env.REDIS_URL,
+        port: PORT,
+        timestamp: new Date().toISOString()
+    });
+});
+
 // Error handler
 app.use((err: any, req: Request, res: Response, next: any) => {
     console.error('Server error:', err);
-    res.status(500).json({ error: 'Internal server error' });
+    // Return actual error message for debugging purposes
+    res.status(500).json({
+        error: 'Internal server error',
+        message: err.message || 'Unknown error',
+        // stack: process.env.NODE_ENV === 'development' ? err.stack : undefined 
+    });
 });
 
 // Initialize services and start server
