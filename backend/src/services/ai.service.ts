@@ -26,19 +26,26 @@ export class AIService {
     private pineconeIndex: any;
 
     constructor() {
-        this.embeddings = new OpenAIEmbeddings({
-            openAIApiKey: process.env.OPENAI_API_KEY,
-            modelName: 'text-embedding-ada-002',
-        });
+        if (process.env.OPENAI_API_KEY) {
+            this.embeddings = new OpenAIEmbeddings({
+                openAIApiKey: process.env.OPENAI_API_KEY,
+                modelName: 'text-embedding-ada-002',
+            });
 
-        this.chatModel = new ChatOpenAI({
-            openAIApiKey: process.env.OPENAI_API_KEY,
-            modelName: process.env.OPENAI_MODEL || 'gpt-4-turbo-preview',
-            temperature: 0.7,
-            maxTokens: 500,
-        });
+            this.chatModel = new ChatOpenAI({
+                openAIApiKey: process.env.OPENAI_API_KEY,
+                modelName: process.env.OPENAI_MODEL || 'gpt-4-turbo-preview',
+                temperature: 0.7,
+                maxTokens: 500,
+            });
+        }
 
-        this.pineconeIndex = getPineconeIndex();
+        // Defer pinecone index retrieval/check until needed or handle error
+        try {
+            this.pineconeIndex = getPineconeIndex();
+        } catch (e) {
+            console.warn('⚠️ AIService: Pinecone index not ready yet (normal during startup)');
+        }
     }
 
     /**
