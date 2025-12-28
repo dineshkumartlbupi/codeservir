@@ -97,9 +97,10 @@ process.on('unhandledRejection', (reason, promise) => {
 
 if (process.env.VERCEL) {
     // In Vercel, we don't start the server, just initialize services
+    // We catch errors but DO NOT exit, so the server/health check can still run
     console.log('🚀 Running in Vercel environment');
-    connectRedis().catch(err => console.error('Redis init error:', err));
-    initializePinecone().catch(err => console.error('Pinecone init error:', err));
+    connectRedis().catch(err => console.warn('⚠️ Redis init warning (non-fatal):', err.message));
+    initializePinecone().catch(err => console.warn('⚠️ Pinecone init warning (non-fatal):', err.message));
 } else {
     // Local development
     startServer();
