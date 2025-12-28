@@ -29,7 +29,7 @@ export const initializePinecone = async () => {
     try {
         if (!pinecone) {
             console.warn('⚠️ Skipping Pinecone initialization: Client not initialized (Missing API Key?)');
-            return;
+            return undefined;
         }
 
         const pc = pinecone;
@@ -62,6 +62,7 @@ export const initializePinecone = async () => {
     } catch (error) {
         console.error('❌ Failed to initialize Pinecone:', error);
         // Don't throw, just log. Allow server to start without Vector DB.
+        return undefined;
     }
 };
 
