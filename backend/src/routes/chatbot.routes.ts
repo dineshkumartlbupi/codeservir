@@ -15,4 +15,7 @@ router.get('/:chatbotId/config', (req, res) => chatbotController.getChatbotConfi
 // Get chat statistics
 router.get('/:chatbotId/stats', (req, res) => chatbotController.getChatStats(req, res));
 
+// Train Chatbot
+router.post('/:chatbotId/train', (req, res) => chatbotController.trainChatbot(req, res));
+
 export default router;

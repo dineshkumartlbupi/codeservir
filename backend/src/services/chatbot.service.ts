@@ -1,3 +1,4 @@
+
 import { query } from '../config/database';
 import { cacheGet, cacheSet, cacheIncrement, cacheGetNumber } from '../config/redis';
 import webScraperService from './scraper.service';
@@ -121,20 +122,42 @@ export class ChatbotService {
 
             const knowledgeContents: { text: string; type: string; sourceUrl?: string }[] = [];
 
-            // Add scraped content
+            // Add scraped content (Chunked for granular retrieval)
             for (const page of scrapedPages) {
-                knowledgeContents.push({
-                    text: `${page.title}\n\n${page.content}`,
-                    type: 'scraped',
-                    sourceUrl: page.url,
+                // Chunk the content by paragraphs or double newlines
+                const chunks = page.content.split(/\n\s*\n/);
+
+                for (const chunk of chunks) {
+                    const cleanChunk = chunk.trim();
+                    // Skip if too short or just navigation/links noise (often short)
+                    if (cleanChunk.length < 50) continue;
+
+                    knowledgeContents.push({
+                        text: cleanChunk,
+                        type: 'scraped',
+                        sourceUrl: page.url,
+                    });
+                }
+
+                // Also add specific extracted sections if possible (scraper returns extractingSections but we need to call it)
+                // Integrating extractSections logic from ScraperService
+                const sections = webScraperService.extractSections(page.content);
+                Object.entries(sections).forEach(([section, content]) => {
+                    if (content.length > 50) {
+                        knowledgeContents.push({
+                            text: `${section.toUpperCase()} SECTION:\n${content}`,
+                            type: 'scraped_section',
+                            sourceUrl: page.url
+                        });
+                    }
                 });
 
-                // Store in database
-                await query(
-                    `INSERT INTO knowledge_base (chatbot_id, content, content_type, source_url)
-           VALUES ($1, $2, 'scraped', $3)`,
-                    [chatbot.id, page.content, page.url]
-                );
+                // Add Page Heading/Title as a separate high-value entry
+                knowledgeContents.push({
+                    text: `Page Title: ${page.title}\nURL: ${page.url}`,
+                    type: 'scraped_meta',
+                    sourceUrl: page.url,
+                });
             }
 
             // Add business description
@@ -142,12 +165,6 @@ export class ChatbotService {
                 text: `Business Description: ${chatbot.businessDescription}`,
                 type: 'description',
             });
-
-            await query(
-                `INSERT INTO knowledge_base (chatbot_id, content, content_type)
-         VALUES ($1, $2, 'description')`,
-                [chatbot.id, chatbot.businessDescription]
-            );
 
             // Add contact information
             const contactInfo = `
@@ -164,13 +181,7 @@ export class ChatbotService {
                 type: 'contact',
             });
 
-            await query(
-                `INSERT INTO knowledge_base (chatbot_id, content, content_type)
-         VALUES ($1, $2, 'contact')`,
-                [chatbot.id, contactInfo]
-            );
-
-            // Create embeddings and store in Pinecone
+            // Store in Knowledge Base (Local DB now)
             await aiService.createKnowledgeBase(chatbot.id, knowledgeContents);
 
             console.log(`✅ Knowledge base built for: ${chatbot.id}`);
@@ -255,8 +266,8 @@ export class ChatbotService {
             // Get subscription limit
             const subResult = await query(
                 `SELECT chat_limit FROM subscriptions 
-         WHERE chatbot_id = $1 AND is_active = true 
-         ORDER BY created_at DESC LIMIT 1`,
+                 WHERE chatbot_id = $1 AND is_active = true 
+                 ORDER BY created_at DESC LIMIT 1`,
                 [chatbotId]
             );
 
@@ -289,8 +300,8 @@ export class ChatbotService {
             // Increment in database (async)
             query(
                 `UPDATE chat_usage 
-         SET chat_count = chat_count + 1, last_chat_at = CURRENT_TIMESTAMP 
-         WHERE chatbot_id = $1`,
+                 SET chat_count = chat_count + 1, last_chat_at = CURRENT_TIMESTAMP 
+                 WHERE chatbot_id = $1`,
                 [chatbotId]
             ).catch(err => console.error('Error updating chat count:', err));
         } catch (error) {
@@ -310,8 +321,8 @@ export class ChatbotService {
 
             const subResult = await query(
                 `SELECT * FROM subscriptions 
-         WHERE chatbot_id = $1 AND is_active = true 
-         ORDER BY created_at DESC LIMIT 1`,
+                 WHERE chatbot_id = $1 AND is_active = true 
+                 ORDER BY created_at DESC LIMIT 1`,
                 [chatbotId]
             );
 
@@ -327,6 +338,27 @@ export class ChatbotService {
         } catch (error) {
             console.error('Error getting chat stats:', error);
             return null;
+        }
+    }
+
+    /**
+     * Train chatbot with manual input
+     */
+    async trainChatbot(chatbotId: string, trainingData: { question: string; answer: string }[]): Promise<void> {
+        try {
+            console.log(`🎓 Training chatbot ${chatbotId} with ${trainingData.length} items...`);
+
+            const contents = trainingData.map(item => ({
+                text: `${item.question}\n${item.answer}`, // Store as simple QA pair for keyword search
+                type: 'manual_qa',
+                sourceUrl: 'manual_input'
+            }));
+
+            await aiService.createKnowledgeBase(chatbotId, contents);
+            console.log(`✅ Training complete for chatbot: ${chatbotId}`);
+        } catch (error) {
+            console.error('Error training chatbot:', error);
+            throw new Error('Failed to train chatbot');
         }
     }
 }

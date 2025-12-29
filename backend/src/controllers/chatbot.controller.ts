@@ -135,6 +135,31 @@ export class ChatbotController {
     }
 
     /**
+     * Train chatbot with manual data
+     */
+    async trainChatbot(req: Request, res: Response): Promise<void> {
+        try {
+            const { chatbotId } = req.params;
+            const { trainingData } = req.body; // Expects [{ question, answer }]
+
+            if (!trainingData || !Array.isArray(trainingData) || trainingData.length === 0) {
+                res.status(400).json({ error: 'Invalid training data' });
+                return;
+            }
+
+            await chatbotService.trainChatbot(chatbotId, trainingData);
+
+            res.json({
+                success: true,
+                message: `Successfully trained chatbot with ${trainingData.length} new items.`
+            });
+        } catch (error) {
+            console.error('Train chatbot error:', error);
+            res.status(500).json({ error: 'Failed to train chatbot' });
+        }
+    }
+
+    /**
      * Generate embed code
      */
     private generateEmbedCode(chatbotId: string): string {
@@ -147,7 +172,7 @@ export class ChatbotController {
   s.src = "${cdnUrl}/widget.js";
   s.async = true;
   s.setAttribute("data-chatbot-id", "${chatbotId}");
-  document.body.appendChild(s);
+  (document.head || document.documentElement).appendChild(s);
 })();
 </script>`;
     }

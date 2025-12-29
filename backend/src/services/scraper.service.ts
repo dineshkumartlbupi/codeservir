@@ -1,5 +1,8 @@
 import * as cheerio from 'cheerio';
 import axios from 'axios';
+// Puppeteer will be imported dynamically to avoid serverless cold start/size issues
+import type { Browser } from 'puppeteer';
+
 
 export interface ScrapedContent {
     url: string;
@@ -20,26 +23,161 @@ export class WebScraperService {
     /**
      * Scrape website content using Puppeteer for dynamic content
      */
-    /**
-     * Scrape website content using simple HTTP (Axios + Cheerio)
-     * Puppeteer has been removed to reduce bundle size for Vercel serverless functions.
-     */
     async scrapeWebsite(url: string): Promise<ScrapedContent[]> {
         try {
             console.log(`🔍 Starting to scrape: ${url}`);
 
-            // Simple scraping logic (fallback to axios/cheerio)
-            const content = await this.scrapeSimple(url);
+            // On Vercel, Puppeteer often requires specific configuration (chrome-aws-lambda).
+            // For now, we'll try to launch, but fallback to simple scraping if it fails
+            // or if we detect we are in a serverless environment without proper setup.
+            let browser: Browser;
+            try {
+                if (process.env.VERCEL) {
+                    console.warn('⚠️ Running on Vercel: dynamic scraping with Puppeteer might be limited. Consider using a dedicated scraping API.');
+                    // Attempt launch (will likely fail purely with 'puppeteer' package on Vercel)
+                    // If you have 'puppeteer-core' and '@sparticuz/chromium', configure it here.
+                    // For now, we will throw to trigger fallback to scrapeSimple.
+                    throw new Error('Puppeteer disabled on Vercel standard environment');
+                }
 
-            return [{
-                url,
-                title: 'Scraped Content',
-                content,
-                links: []
-            }];
+                // Dynamic import to prevent top-level crash on Vercel
+                const puppeteer = (await import('puppeteer')).default;
+                browser = await puppeteer.launch({
+                    headless: true,
+                    args: ['--no-sandbox', '--disable-setuid-sandbox'],
+                });
+            } catch (launchError) {
+                console.warn('⚠️ Puppeteer launch failed (expected on serverless without config). Falling back to simple scraping.', launchError);
+                // Fallback to simple scraping for the main URL
+                const simpleContent = await this.scrapeSimple(url);
+                return [{
+                    url,
+                    title: 'Scraped Content',
+                    content: simpleContent,
+                    links: []
+                }];
+            }
+
+            const scrapedPages: ScrapedContent[] = [];
+            const visitedUrls = new Set<string>();
+            const urlsToVisit: string[] = [url];
+
+            while (urlsToVisit.length > 0 && scrapedPages.length < this.maxPages) {
+                const currentUrl = urlsToVisit.shift()!;
+
+                if (visitedUrls.has(currentUrl)) continue;
+                visitedUrls.add(currentUrl);
+
+                try {
+                    const pageContent = await this.scrapePage(browser, currentUrl);
+                    if (pageContent) {
+                        scrapedPages.push(pageContent);
+
+                        // Add internal links to visit
+                        const baseUrl = new URL(url);
+                        const internalLinks = pageContent.links.filter(link => {
+                            try {
+                                const linkUrl = new URL(link, currentUrl);
+                                return linkUrl.hostname === baseUrl.hostname;
+                            } catch {
+                                return false;
+                            }
+                        });
+
+                        urlsToVisit.push(...internalLinks.slice(0, 5));
+                    }
+                } catch (error) {
+                    console.error(`Error scraping ${currentUrl}:`, error);
+                }
+            }
+
+            await browser.close();
+            console.log(`✅ Scraped ${scrapedPages.length} pages from ${url}`);
+
+            return scrapedPages;
         } catch (error) {
             console.error('Web scraping error:', error);
             throw new Error('Failed to scrape website');
+        }
+    }
+
+    /**
+     * Scrape a single page
+     */
+    private async scrapePage(browser: any, url: string): Promise<ScrapedContent | null> {
+        const page = await browser.newPage();
+
+        try {
+            await page.setUserAgent(
+                'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+            );
+
+            await page.goto(url, {
+                waitUntil: 'networkidle2',
+                timeout: this.timeout,
+            });
+
+            const html = await page.content();
+            const $ = cheerio.load(html);
+
+            // Remove unwanted elements
+            $('script, style, nav, footer, header, iframe, noscript').remove();
+
+            // Extract title
+            const title = $('title').text() || $('h1').first().text() || '';
+
+            // Extract main content
+            const contentSelectors = [
+                'main',
+                'article',
+                '[role="main"]',
+                '.content',
+                '#content',
+                '.main-content',
+                'body',
+            ];
+
+            let content = '';
+            for (const selector of contentSelectors) {
+                const element = $(selector);
+                if (element.length > 0) {
+                    content = element.text();
+                    break;
+                }
+            }
+
+            // Clean up content
+            content = content
+                .replace(/\s+/g, ' ')
+                .replace(/\n+/g, '\n')
+                .trim();
+
+            // Extract links
+            const links: string[] = [];
+            $('a[href]').each((_, element) => {
+                const href = $(element).attr('href');
+                if (href) {
+                    try {
+                        const absoluteUrl = new URL(href, url).href;
+                        links.push(absoluteUrl);
+                    } catch {
+                        // Invalid URL, skip
+                    }
+                }
+            });
+
+            await page.close();
+
+            return {
+                url,
+                title,
+                content: content.substring(0, 10000), // Limit content length
+                links: [...new Set(links)], // Remove duplicates
+            };
+        } catch (error) {
+            console.error(`Error scraping page ${url}:`, error);
+            await page.close();
+            return null;
         }
     }
 

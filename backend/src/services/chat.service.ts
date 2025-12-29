@@ -46,7 +46,7 @@ export class ChatService {
             // Get chat history for context
             const chatHistory = await this.getChatHistory(chatbotId, sessionId, 5);
 
-            // Generate AI response
+            // Generate Response (Local Logic)
             const context = {
                 businessName: chatbot.businessName,
                 businessDescription: chatbot.businessDescription,
@@ -73,10 +73,10 @@ export class ChatService {
                 response: aiResponse,
                 sessionId,
             };
-        } catch (error) {
+        } catch (error: any) {
             console.error('Error processing message:', error);
             return {
-                response: 'Sorry, I encountered an error. Please try again.',
+                response: 'Sorry, I am currently experiencing issues. Please try again later.',
                 sessionId: request.sessionId,
                 error: 'INTERNAL_ERROR',
             };
@@ -94,10 +94,10 @@ export class ChatService {
         try {
             const result = await query(
                 `SELECT user_message, bot_response 
-         FROM chat_history 
-         WHERE chatbot_id = $1 AND session_id = $2 
-         ORDER BY created_at DESC 
-         LIMIT $3`,
+                 FROM chat_history 
+                 WHERE chatbot_id = $1 AND session_id = $2 
+                 ORDER BY created_at DESC 
+                 LIMIT $3`,
                 [chatbotId, sessionId, limit]
             );
 
@@ -130,7 +130,7 @@ export class ChatService {
         try {
             await query(
                 `INSERT INTO chat_history (chatbot_id, session_id, user_message, bot_response)
-         VALUES ($1, $2, $3, $4)`,
+                 VALUES ($1, $2, $3, $4)`,
                 [chatbotId, sessionId, userMessage, botResponse]
             );
         } catch (error) {
@@ -152,9 +152,9 @@ export class ChatService {
         try {
             const result = await query(
                 `SELECT * FROM chat_history 
-         WHERE chatbot_id = $1 
-         ORDER BY created_at DESC 
-         LIMIT $2`,
+                 WHERE chatbot_id = $1 
+                 ORDER BY created_at DESC 
+                 LIMIT $2`,
                 [chatbotId, limit]
             );
 
