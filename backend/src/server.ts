@@ -18,8 +18,7 @@ const PORT = process.env.PORT || 5000;
 // Middleware
 // CORS Configuration
 const allowedOrigins = [
-    'https://codeservir-api.vercel.app',
-    'https://codeservir-backend.vercel.app',
+    'https://codeservir-app.vercel.app', // Correct Frontend URL
     'http://localhost:3000',
     'http://localhost:3001',
     'http://127.0.0.1:3000',
