@@ -17,6 +17,7 @@ const PORT = process.env.PORT || 5000;
 // Middleware
 // CORS Configuration
 const allowedOrigins = [
+    'https://codeservir-api.vercel.app',
     'https://codeservir-backend.vercel.app',
     'http://localhost:3000',
     'http://localhost:3001',
@@ -29,11 +30,14 @@ app.use(cors({
         // Allow requests with no origin (like mobile apps or curl requests)
         if (!origin) return callback(null, true);
 
+        console.log('Incoming Origin:', origin); // DEBUG logging
+
         if (allowedOrigins.indexOf(origin) !== -1 || origin.endsWith('.vercel.app')) {
             callback(null, true);
         } else {
             // For development/testing, you might want to allow all, but for production be strict
             // temporarily allow all to debug
+            console.log('Allowed blocked origin for debug:', origin);
             callback(null, true);
         }
     },
