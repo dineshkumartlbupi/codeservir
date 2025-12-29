@@ -1,6 +1,5 @@
 {
     "version": 2,
-    "comment": "Force update for CORS",
     "rewrites": [
         {
             "source": "/(.*)",
@@ -17,7 +16,7 @@
                 },
                 {
                     "key": "Access-Control-Allow-Origin",
-                    "value": "https://codeservir-api.vercel.app"
+                    "value": "https://codeservir-app.vercel.app"
                 },
                 {
                     "key": "Access-Control-Allow-Methods",
