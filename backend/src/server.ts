@@ -17,8 +17,7 @@ const PORT = process.env.PORT || 5000;
 // Middleware
 // CORS Configuration
 const allowedOrigins = [
-    'https://codeservir-app.vercel.app',
-    'https://codeservir.vercel.app', // In case they used the other name
+    'https://codeservir-backend.vercel.app',
     'http://localhost:3000',
     'http://localhost:3001',
     'http://127.0.0.1:3000',
