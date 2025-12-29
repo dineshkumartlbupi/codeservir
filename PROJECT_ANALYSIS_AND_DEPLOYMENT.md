@@ -49,7 +49,7 @@ Ensure you have the following keys ready:
     -   `REDIS_URL`: `redis://...`
     -   `CORS_ORIGIN`: `https://codeservir-frontend.vercel.app` (You will update this after deploying frontend)
 5.  **Deploy**.
-6.  **Copy the Backend URL** (e.g., `https://codeservir-backend.vercel.app`).
+6.  **Copy the Backend URL** (e.g., `https://codeservir-api.vercel.app/`).
 
 ### Step 2: Deploy Frontend
 
@@ -60,7 +60,7 @@ Ensure you have the following keys ready:
     -   **Framework Preset**: Create React App
     -   **Root Directory**: Click `Edit` and select `frontend`.
 4.  **Environment Variables**: Add the following:
-    -   `REACT_APP_API_URL`: Paste your **Backend URL** from Step 1 (e.g., `https://codeservir-backend.vercel.app`).
+    -   `REACT_APP_API_URL`: Paste your **Backend URL** from Step 1 (e.g., `https://codeservir-api.vercel.app/`).
         *   *Note: Do not add a trailing slash.*
 5.  **Deploy**.
 

@@ -35,7 +35,7 @@ We will deploy the backend first so we can get the API URL.
       - `CDN_URL`: leave empty or set to your frontend URL later.
 
 5.  **Click Deploy.**
-    - Once deployed, Vercel will give you a domain (e.g., `https://codeservir-backend.vercel.app`).
+    - Once deployed, Vercel will give you a domain (e.g., `https://codeservir-api.vercel.app/`).
     - **Copy this URL.**
 
 ---
@@ -52,8 +52,8 @@ Now we deploy the React app.
     - **Root Directory:** Click "Edit" and select `frontend`. **(Important!)**
     - **Framework Preset:** "Create React App" (should be auto-detected).
     - **Environment Variables:**
-      - `REACT_APP_API_URL`: Paste the backend URL from Step 1 (e.g., `https://codeservir-backend.vercel.app/api`).
-      - `REACT_APP_WIDGET_URL`: `https://codeservir-backend.vercel.app`.
+      - `REACT_APP_API_URL`: Paste the backend URL from Step 1 (e.g., `https://codeservir-api.vercel.app//api`).
+      - `REACT_APP_WIDGET_URL`: `https://codeservir-api.vercel.app/`.
 
 4.  **Click Deploy.**
     - Your app is now live! 🚀
