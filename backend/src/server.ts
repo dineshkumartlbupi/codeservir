@@ -1,4 +1,5 @@
 import express, { Application, Request, Response } from 'express';
+// Force update for CORS fix
 import cors from 'cors';
 import dotenv from 'dotenv';
 import path from 'path';
