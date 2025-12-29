@@ -15,12 +15,37 @@ const app: Application = express();
 const PORT = process.env.PORT || 5000;
 
 // Middleware
+// CORS Configuration
+const allowedOrigins = [
+    'https://codeservir-app.vercel.app',
+    'https://codeservir.vercel.app', // In case they used the other name
+    'http://localhost:3000',
+    'http://localhost:3001',
+    'http://127.0.0.1:3000',
+    'http://127.0.0.1:3001'
+];
+
 app.use(cors({
-    origin: true, // Allow any origin
+    origin: function (origin, callback) {
+        // Allow requests with no origin (like mobile apps or curl requests)
+        if (!origin) return callback(null, true);
+
+        if (allowedOrigins.indexOf(origin) !== -1 || origin.endsWith('.vercel.app')) {
+            callback(null, true);
+        } else {
+            // For development/testing, you might want to allow all, but for production be strict
+            // temporarily allow all to debug
+            callback(null, true);
+        }
+    },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin']
 }));
+
+// Handle preflight requests explicitly
+app.options('*', cors());
+
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
