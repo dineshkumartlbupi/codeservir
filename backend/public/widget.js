@@ -26,10 +26,15 @@
       <style>
         #codeservir-widget {
           position: fixed;
-          bottom: 20px;
-          right: 20px;
+          bottom: 0;
+          right: 0;
           z-index: 999999;
           font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+          pointer-events: none; /* Let clicks pass through the container */
+          display: flex;
+          flex-direction: column;
+          align-items: flex-end;
+          padding: 20px;
         }
 
         /* Floating Launcher Button */
@@ -44,8 +49,10 @@
           display: flex;
           align-items: center;
           justify-content: center;
+          pointer-events: auto; /* Re-enable clicks */
           transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.3s;
           animation: codeservir-float 3s ease-in-out infinite;
+          margin-top: 20px;
         }
 
         @keyframes codeservir-float {
@@ -68,27 +75,26 @@
 
         /* Main Chat Window */
         #codeservir-chat-window {
-          display: none;
-          position: fixed;
-          bottom: 100px;
-          right: 20px;
+          display: none; /* Explicitly hidden */
           width: 380px;
-          height: 650px;
-          max-height: calc(100vh - 120px);
+          height: 600px; /* Slightly shorter to fit smaller screens safely */
+          max-height: calc(100vh - 140px);
           background: #f3f4f6;
           border-radius: 20px;
           box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
           flex-direction: column;
           overflow: hidden;
-          opacity: 0;
-          transform: translateY(20px) scale(0.95);
-          transition: opacity 0.3s, transform 0.3s;
+          pointer-events: auto; /* Re-enable clicks */
+          margin-bottom: 20px; /* Space from button if we used flex column logic, but for fixed pos this might be ignored unless we change layout strategy. */
+          
+          /* Fixed positioning relative to viewport to be safe */
+          position: fixed;
+          bottom: 100px;
+          right: 20px;
         }
 
         #codeservir-chat-window.open {
-          display: flex;
-          opacity: 1;
-          transform: translateY(0) scale(1);
+          display: flex !important; /* Force show */
         }
 
         /* Header */
