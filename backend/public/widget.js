@@ -1,27 +1,27 @@
 (function () {
-    'use strict';
+  'use strict';
 
-    // Get chatbot ID from script tag
-    const scripts = document.getElementsByTagName('script');
-    const currentScript = scripts[scripts.length - 1];
-    const chatbotId = currentScript.getAttribute('data-chatbot-id');
+  // Get chatbot ID from script tag
+  const scripts = document.getElementsByTagName('script');
+  const currentScript = scripts[scripts.length - 1];
+  const chatbotId = currentScript.getAttribute('data-chatbot-id');
 
-    if (!chatbotId) {
-        console.error('codeservir: chatbot-id not provided');
-        return;
-    }
+  if (!chatbotId) {
+    console.error('codeservir: chatbot-id not provided');
+    return;
+  }
 
-    const API_URL = currentScript.src.replace('/widget.js', '');
-    let sessionId = null;
-    let config = null;
-    let isOpen = false;
-    let messages = [];
+  const API_URL = currentScript.src.replace('/widget.js', '');
+  let sessionId = null;
+  let config = null;
+  let isOpen = false;
+  let messages = [];
 
-    // Create widget HTML
-    function createWidget() {
-        const widgetContainer = document.createElement('div');
-        widgetContainer.id = 'codeservir-widget';
-        widgetContainer.innerHTML = `
+  // Create widget HTML
+  function createWidget() {
+    const widgetContainer = document.createElement('div');
+    widgetContainer.id = 'codeservir-widget';
+    widgetContainer.innerHTML = `
       <style>
         #codeservir-widget {
           position: fixed;
@@ -42,12 +42,20 @@
           display: flex;
           align-items: center;
           justify-content: center;
-          transition: transform 0.2s, box-shadow 0.2s;
+          transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.3s;
+          animation: codeservir-float 3s ease-in-out infinite;
+        }
+
+        @keyframes codeservir-float {
+          0% { transform: translateY(0px); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); }
+          50% { transform: translateY(-6px); box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2); }
+          100% { transform: translateY(0px); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); }
         }
 
         #codeservir-button:hover {
-          transform: scale(1.05);
-          box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+          transform: scale(1.1);
+          animation-play-state: paused;
+          box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
         }
 
         #codeservir-button svg {
@@ -287,172 +295,172 @@
       </div>
     `;
 
-        document.body.appendChild(widgetContainer);
+    document.body.appendChild(widgetContainer);
+  }
+
+  // Load chatbot configuration
+  async function loadConfig() {
+    try {
+      const response = await fetch(`${API_URL}/api/chatbot/${chatbotId}/config`);
+      const data = await response.json();
+
+      if (data.success) {
+        config = data.config;
+
+        // Apply custom colors
+        const root = document.documentElement;
+        root.style.setProperty('--primary-color', config.primaryColor);
+        root.style.setProperty('--secondary-color', config.secondaryColor);
+
+        // Set title
+        document.getElementById('codeservir-title').textContent = config.businessName;
+
+        // Add greeting message
+        addMessage('bot', config.greeting);
+      }
+    } catch (error) {
+      console.error('Failed to load chatbot config:', error);
     }
+  }
 
-    // Load chatbot configuration
-    async function loadConfig() {
-        try {
-            const response = await fetch(`${API_URL}/api/chatbot/${chatbotId}/config`);
-            const data = await response.json();
+  // Create new session
+  async function createSession() {
+    try {
+      const response = await fetch(`${API_URL}/api/chat/session`, {
+        method: 'POST',
+      });
+      const data = await response.json();
 
-            if (data.success) {
-                config = data.config;
-
-                // Apply custom colors
-                const root = document.documentElement;
-                root.style.setProperty('--primary-color', config.primaryColor);
-                root.style.setProperty('--secondary-color', config.secondaryColor);
-
-                // Set title
-                document.getElementById('codeservir-title').textContent = config.businessName;
-
-                // Add greeting message
-                addMessage('bot', config.greeting);
-            }
-        } catch (error) {
-            console.error('Failed to load chatbot config:', error);
-        }
+      if (data.success) {
+        sessionId = data.sessionId;
+        localStorage.setItem(`codeservir_session_${chatbotId}`, sessionId);
+      }
+    } catch (error) {
+      console.error('Failed to create session:', error);
     }
+  }
 
-    // Create new session
-    async function createSession() {
-        try {
-            const response = await fetch(`${API_URL}/api/chat/session`, {
-                method: 'POST',
-            });
-            const data = await response.json();
+  // Send message
+  async function sendMessage(message) {
+    if (!message.trim()) return;
 
-            if (data.success) {
-                sessionId = data.sessionId;
-                localStorage.setItem(`codeservir_session_${chatbotId}`, sessionId);
-            }
-        } catch (error) {
-            console.error('Failed to create session:', error);
-        }
+    // Add user message to UI
+    addMessage('user', message);
+
+    // Clear input
+    document.getElementById('codeservir-input').value = '';
+
+    // Show typing indicator
+    showTyping(true);
+
+    try {
+      const response = await fetch(`${API_URL}/api/chat`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          chatbotId,
+          sessionId,
+          message,
+        }),
+      });
+
+      const data = await response.json();
+
+      showTyping(false);
+
+      if (data.success) {
+        addMessage('bot', data.response);
+      } else if (data.error === 'LIMIT_EXCEEDED') {
+        addMessage('bot', data.message);
+      } else {
+        addMessage('bot', 'Sorry, I encountered an error. Please try again.');
+      }
+    } catch (error) {
+      showTyping(false);
+      console.error('Failed to send message:', error);
+      addMessage('bot', 'Sorry, I encountered an error. Please try again.');
     }
+  }
 
-    // Send message
-    async function sendMessage(message) {
-        if (!message.trim()) return;
+  // Add message to UI
+  function addMessage(type, content) {
+    const messagesContainer = document.getElementById('codeservir-messages');
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `codeservir-message ${type}`;
 
-        // Add user message to UI
-        addMessage('user', message);
+    const contentDiv = document.createElement('div');
+    contentDiv.className = 'codeservir-message-content';
+    contentDiv.textContent = content;
 
-        // Clear input
-        document.getElementById('codeservir-input').value = '';
+    messageDiv.appendChild(contentDiv);
+    messagesContainer.insertBefore(messageDiv, messagesContainer.querySelector('.codeservir-typing'));
 
-        // Show typing indicator
-        showTyping(true);
+    // Scroll to bottom
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
 
-        try {
-            const response = await fetch(`${API_URL}/api/chat`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    chatbotId,
-                    sessionId,
-                    message,
-                }),
-            });
+    messages.push({ type, content });
+  }
 
-            const data = await response.json();
-
-            showTyping(false);
-
-            if (data.success) {
-                addMessage('bot', data.response);
-            } else if (data.error === 'LIMIT_EXCEEDED') {
-                addMessage('bot', data.message);
-            } else {
-                addMessage('bot', 'Sorry, I encountered an error. Please try again.');
-            }
-        } catch (error) {
-            showTyping(false);
-            console.error('Failed to send message:', error);
-            addMessage('bot', 'Sorry, I encountered an error. Please try again.');
-        }
-    }
-
-    // Add message to UI
-    function addMessage(type, content) {
-        const messagesContainer = document.getElementById('codeservir-messages');
-        const messageDiv = document.createElement('div');
-        messageDiv.className = `codeservir-message ${type}`;
-
-        const contentDiv = document.createElement('div');
-        contentDiv.className = 'codeservir-message-content';
-        contentDiv.textContent = content;
-
-        messageDiv.appendChild(contentDiv);
-        messagesContainer.insertBefore(messageDiv, messagesContainer.querySelector('.codeservir-typing'));
-
-        // Scroll to bottom
-        messagesContainer.scrollTop = messagesContainer.scrollHeight;
-
-        messages.push({ type, content });
-    }
-
-    // Show/hide typing indicator
-    function showTyping(show) {
-        const typing = document.querySelector('.codeservir-typing');
-        if (show) {
-            typing.classList.add('active');
-        } else {
-            typing.classList.remove('active');
-        }
-
-        const messagesContainer = document.getElementById('codeservir-messages');
-        messagesContainer.scrollTop = messagesContainer.scrollHeight;
-    }
-
-    // Toggle chat window
-    function toggleChat() {
-        isOpen = !isOpen;
-        const chatWindow = document.getElementById('codeservir-chat-window');
-
-        if (isOpen) {
-            chatWindow.classList.add('open');
-            document.getElementById('codeservir-input').focus();
-        } else {
-            chatWindow.classList.remove('open');
-        }
-    }
-
-    // Initialize widget
-    async function init() {
-        createWidget();
-
-        // Load session from localStorage
-        sessionId = localStorage.getItem(`codeservir_session_${chatbotId}`);
-        if (!sessionId) {
-            await createSession();
-        }
-
-        await loadConfig();
-
-        // Event listeners
-        document.getElementById('codeservir-button').addEventListener('click', toggleChat);
-        document.getElementById('codeservir-close').addEventListener('click', toggleChat);
-
-        document.getElementById('codeservir-send').addEventListener('click', () => {
-            const input = document.getElementById('codeservir-input');
-            sendMessage(input.value);
-        });
-
-        document.getElementById('codeservir-input').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                sendMessage(e.target.value);
-            }
-        });
-    }
-
-    // Start when DOM is ready
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', init);
+  // Show/hide typing indicator
+  function showTyping(show) {
+    const typing = document.querySelector('.codeservir-typing');
+    if (show) {
+      typing.classList.add('active');
     } else {
-        init();
+      typing.classList.remove('active');
     }
+
+    const messagesContainer = document.getElementById('codeservir-messages');
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+  }
+
+  // Toggle chat window
+  function toggleChat() {
+    isOpen = !isOpen;
+    const chatWindow = document.getElementById('codeservir-chat-window');
+
+    if (isOpen) {
+      chatWindow.classList.add('open');
+      document.getElementById('codeservir-input').focus();
+    } else {
+      chatWindow.classList.remove('open');
+    }
+  }
+
+  // Initialize widget
+  async function init() {
+    createWidget();
+
+    // Load session from localStorage
+    sessionId = localStorage.getItem(`codeservir_session_${chatbotId}`);
+    if (!sessionId) {
+      await createSession();
+    }
+
+    await loadConfig();
+
+    // Event listeners
+    document.getElementById('codeservir-button').addEventListener('click', toggleChat);
+    document.getElementById('codeservir-close').addEventListener('click', toggleChat);
+
+    document.getElementById('codeservir-send').addEventListener('click', () => {
+      const input = document.getElementById('codeservir-input');
+      sendMessage(input.value);
+    });
+
+    document.getElementById('codeservir-input').addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        sendMessage(e.target.value);
+      }
+    });
+  }
+
+  // Start when DOM is ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
 })();
