@@ -13,6 +13,9 @@ import PrivacyPolicyPage from './pages/PrivacyPolicyPage';
 import TermsOfServicePage from './pages/TermsOfServicePage';
 import LoginPage from './pages/LoginPage';
 import SignupPage from './pages/SignupPage';
+import DashboardPage from './pages/DashboardPage';
+import MyChatbotsPage from './pages/MyChatbotsPage';
+import SettingsPage from './pages/SettingsPage';
 import Navigation from './components/Navigation';
 
 function App() {
@@ -33,6 +36,9 @@ function App() {
             <Route path="/terms-of-service" element={<TermsOfServicePage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/signup" element={<SignupPage />} />
+            <Route path="/dashboard" element={<DashboardPage />} />
+            <Route path="/my-chatbots" element={<MyChatbotsPage />} />
+            <Route path="/settings" element={<SettingsPage />} />
           </Routes>
           <Footer />
         </div>
