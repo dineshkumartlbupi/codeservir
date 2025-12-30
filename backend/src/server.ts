@@ -10,6 +10,10 @@ import chatbotRoutes from './routes/chatbot.routes';
 import chatRoutes from './routes/chat.routes';
 import paymentRoutes from './routes/payment.routes';
 
+// Import middleware
+import { errorHandler, notFoundHandler } from './middleware/error.middleware';
+import { manualCorsMiddleware } from './middleware/cors.middleware';
+
 dotenv.config();
 
 const app: Application = express();
@@ -23,18 +27,8 @@ app.use(cors({
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin']
 }));
 
-// Manual Preflight Handler for robustness
-app.use((req, res, next) => {
-    if (req.method === 'OPTIONS') {
-        res.setHeader('Access-Control-Allow-Origin', req.headers.origin || '*');
-        res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-        res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Origin');
-        res.setHeader('Access-Control-Allow-Credentials', 'true');
-        res.sendStatus(200);
-    } else {
-        next();
-    }
-});
+// Manual Preflight Handler for robustness (via middleware)
+app.use(manualCorsMiddleware);
 
 
 app.use(express.json());
@@ -140,16 +134,9 @@ app.get('/api/debug/diagnose', async (req, res) => {
     res.json(report);
 });
 
-// 404 handler (Must be last)
-app.use((req: Request, res: Response) => {
-    res.status(404).json({ error: 'Route not found' });
-});
-
-// Error handler (Must be very last)
-app.use((err: any, req: Request, res: Response, next: any) => {
-    console.error('Server error:', err);
-    res.status(500).json({ error: 'Internal server error' });
-});
+// Error handling middleware (Must be last)
+app.use(notFoundHandler);
+app.use(errorHandler);
 
 // Initialize services and start server
 const startServer = async () => {

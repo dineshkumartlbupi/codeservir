@@ -1,36 +1,9 @@
 
-import { query } from '../config/database';
 import { cacheGet, cacheSet, cacheIncrement, cacheGetNumber } from '../config/redis';
 import webScraperService from './scraper.service';
 import aiService from './ai.service';
 import { v4 as uuidv4 } from 'uuid';
-
-export interface CreateChatbotDTO {
-    ownerName: string;
-    businessName: string;
-    websiteUrl: string;
-    contactNumber: string;
-    contactEmail: string;
-    businessAddress: string;
-    businessDescription: string;
-    primaryColor: string;
-    secondaryColor: string;
-}
-
-export interface Chatbot {
-    id: string;
-    ownerName: string;
-    businessName: string;
-    websiteUrl: string;
-    contactNumber: string;
-    contactEmail: string;
-    businessAddress: string;
-    businessDescription: string;
-    primaryColor: string;
-    secondaryColor: string;
-    createdAt: Date;
-    status: string;
-}
+import chatbotModel, { Chatbot, CreateChatbotDTO } from '../models/chatbot.model';
 
 export class ChatbotService {
     /**
@@ -43,56 +16,14 @@ export class ChatbotService {
             // Generate unique chatbot ID
             const chatbotId = `cb_${uuidv4().replace(/-/g, '').substring(0, 16)}`;
 
-            // Insert chatbot into database
-            const result = await query(
-                `INSERT INTO chatbots (
-          id, owner_name, business_name, website_url, contact_number,
-          contact_email, business_address, business_description,
-          primary_color, secondary_color
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
-        RETURNING *`,
-                [
-                    chatbotId,
-                    data.ownerName,
-                    data.businessName,
-                    data.websiteUrl,
-                    data.contactNumber,
-                    data.contactEmail,
-                    data.businessAddress,
-                    data.businessDescription,
-                    data.primaryColor,
-                    data.secondaryColor,
-                ]
-            );
+            // Create chatbot via Model
+            const chatbot = await chatbotModel.create(data, chatbotId);
 
-            const row = result.rows[0];
-            const chatbot: Chatbot = {
-                id: row.id,
-                ownerName: row.owner_name,
-                businessName: row.business_name,
-                websiteUrl: row.website_url,
-                contactNumber: row.contact_number,
-                contactEmail: row.contact_email,
-                businessAddress: row.business_address,
-                businessDescription: row.business_description,
-                primaryColor: row.primary_color,
-                secondaryColor: row.secondary_color,
-                createdAt: row.created_at,
-                status: row.status
-            };
+            // Initialize chat usage via Model
+            await chatbotModel.initUsage(chatbotId);
 
-            // Initialize chat usage
-            await query(
-                `INSERT INTO chat_usage (chatbot_id, chat_count) VALUES ($1, 0)`,
-                [chatbotId]
-            );
-
-            // Create free subscription
-            await query(
-                `INSERT INTO subscriptions (chatbot_id, plan_type, chat_limit, price)
-         VALUES ($1, 'free', 1000, 0)`,
-                [chatbotId]
-            );
+            // Create free subscription via Model
+            await chatbotModel.initSubscription(chatbotId);
 
             // Initialize cache
             try {
@@ -110,7 +41,7 @@ export class ChatbotService {
             return chatbot;
         } catch (error) {
             console.error('Error creating chatbot:', error);
-            throw error; // Re-throw the original error to expose details
+            throw error;
         }
     }
 
@@ -143,8 +74,7 @@ export class ChatbotService {
                     });
                 }
 
-                // Also add specific extracted sections if possible (scraper returns extractingSections but we need to call it)
-                // Integrating extractSections logic from ScraperService
+                // Also add specific extracted sections if possible
                 const sections = webScraperService.extractSections(page.content);
                 Object.entries(sections).forEach(([section, content]) => {
                     if (content.length > 50) {
@@ -200,27 +130,7 @@ export class ChatbotService {
      */
     async getChatbot(chatbotId: string): Promise<Chatbot | null> {
         try {
-            const result = await query(
-                'SELECT * FROM chatbots WHERE id = $1',
-                [chatbotId]
-            );
-
-            if (result.rows.length === 0) return null;
-            const row = result.rows[0];
-            return {
-                id: row.id,
-                ownerName: row.owner_name,
-                businessName: row.business_name,
-                websiteUrl: row.website_url,
-                contactNumber: row.contact_number,
-                contactEmail: row.contact_email,
-                businessAddress: row.business_address,
-                businessDescription: row.business_description,
-                primaryColor: row.primary_color,
-                secondaryColor: row.secondary_color,
-                createdAt: row.created_at,
-                status: row.status
-            };
+            return await chatbotModel.findById(chatbotId);
         } catch (error) {
             console.error('Error getting chatbot:', error);
             return null;
@@ -259,23 +169,14 @@ export class ChatbotService {
 
             // If not in cache, get from database
             if (chatCount === 0) {
-                const result = await query(
-                    'SELECT chat_count FROM chat_usage WHERE chatbot_id = $1',
-                    [chatbotId]
-                );
-                chatCount = result.rows[0]?.chat_count || 0;
+                const usage = await chatbotModel.getUsage(chatbotId);
+                chatCount = usage?.chat_count || 0;
                 await cacheSet(cacheKey, chatCount.toString());
             }
 
             // Get subscription limit
-            const subResult = await query(
-                `SELECT chat_limit FROM subscriptions 
-                 WHERE chatbot_id = $1 AND is_active = true 
-                 ORDER BY created_at DESC LIMIT 1`,
-                [chatbotId]
-            );
-
-            const chatLimit = subResult.rows[0]?.chat_limit || 1000;
+            const subscription = await chatbotModel.getSubscription(chatbotId);
+            const chatLimit = subscription?.chat_limit || 1000;
 
             // Ensure numeric comparison (Handle BIGINT strings from PG)
             const currentCount = Number(chatCount);
@@ -306,12 +207,8 @@ export class ChatbotService {
             await cacheIncrement(cacheKey);
 
             // Increment in database (async)
-            query(
-                `UPDATE chat_usage 
-                 SET chat_count = chat_count + 1, last_chat_at = CURRENT_TIMESTAMP 
-                 WHERE chatbot_id = $1`,
-                [chatbotId]
-            ).catch(err => console.error('Error updating chat count:', err));
+            chatbotModel.incrementUsage(chatbotId)
+                .catch(err => console.error('Error updating chat count:', err));
         } catch (error) {
             console.error('Error incrementing chat count:', error);
         }
@@ -322,20 +219,8 @@ export class ChatbotService {
      */
     async getChatStats(chatbotId: string): Promise<any> {
         try {
-            const usageResult = await query(
-                'SELECT * FROM chat_usage WHERE chatbot_id = $1',
-                [chatbotId]
-            );
-
-            const subResult = await query(
-                `SELECT * FROM subscriptions 
-                 WHERE chatbot_id = $1 AND is_active = true 
-                 ORDER BY created_at DESC LIMIT 1`,
-                [chatbotId]
-            );
-
-            const usage = usageResult.rows[0];
-            const subscription = subResult.rows[0];
+            const usage = await chatbotModel.getUsage(chatbotId);
+            const subscription = await chatbotModel.getSubscription(chatbotId);
 
             return {
                 chatCount: usage?.chat_count || 0,
