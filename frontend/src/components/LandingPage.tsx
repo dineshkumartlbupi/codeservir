@@ -235,24 +235,11 @@ const LandingPage: React.FC = () => {
             {/* Hero Section */}
             <header className="relative text-white py-20 px-4 text-center">
                 <div className="max-w-5xl mx-auto">
-                    {/* Logo/Icon */}
-                    <div className="inline-flex items-center justify-center mb-6">
-                        <div className="relative">
-                            <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full blur-2xl opacity-50 animate-pulse"></div>
-                            <div className="relative bg-gradient-to-br from-purple-600 to-pink-600 p-4 rounded-2xl shadow-2xl">
-                                <svg className="w-16 h-16 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
-                                </svg>
-                            </div>
-                        </div>
-                    </div>
 
-                    <h1 className="text-6xl md:text-7xl font-bold mb-6 bg-gradient-to-r from-purple-400 via-pink-400 to-purple-400 bg-clip-text text-transparent animate-gradient">
-                        CodeServir
-                    </h1>
-                    <p className="text-2xl md:text-3xl font-light mb-4 text-purple-200">
+
+                    <h1 className="text-2xl md:text-3xl lg:text-4xl font-light mb-6 text-purple-200 mt-12">
                         AI-Powered Chatbot Platform
-                    </p>
+                    </h1>
                     <p className="text-lg md:text-xl text-purple-300 max-w-2xl mx-auto">
                         Create intelligent chatbots for your website in minutes. No coding required.
                     </p>

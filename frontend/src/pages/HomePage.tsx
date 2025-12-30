@@ -29,9 +29,9 @@ const HomePage: React.FC = () => {
                     {/* <h1 className="text-6xl md:text-7xl lg:text-8xl font-bold mb-6 bg-gradient-to-r from-purple-400 via-pink-400 to-purple-400 bg-clip-text text-transparent animate-gradient">
                         CodeServir
                     </h1> */}
-                    <p className="text-2xl md:text-3xl lg:text-4xl font-light mb-6 text-purple-200">
+                    <h1 className="text-2xl md:text-3xl lg:text-4xl font-light mb-6 text-purple-200">
                         AI-Powered Chatbot Platform
-                    </p>
+                    </h1>
                     <p className="text-lg md:text-xl text-purple-300 max-w-3xl mx-auto mb-12">
                         Create intelligent chatbots for your website in minutes. No coding required.
                         Fully customizable, responsive, and powered by advanced AI.
