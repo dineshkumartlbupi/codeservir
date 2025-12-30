@@ -49,8 +49,8 @@ export class ChatbotController {
                 websiteUrl,
                 contactNumber: contactNumber || '', // Handle optional field
                 contactEmail,
-                businessAddress,
-                businessDescription,
+                businessAddress: businessAddress || '', // Handle optional field
+                businessDescription: businessDescription || '', // Handle optional field
                 primaryColor: primaryColor || '#4F46E5',
                 secondaryColor: secondaryColor || '#10B981',
             });
