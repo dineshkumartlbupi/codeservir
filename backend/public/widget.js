@@ -467,34 +467,25 @@
     messagesContainer.scrollTop = messagesContainer.scrollHeight;
   }
 
-  // Toggle chat window
-  function toggleChat() {
-    isOpen = !isOpen;
-    const chatWindow = document.getElementById('codeservir-chat-window');
-
-    if (isOpen) {
-      chatWindow.classList.add('open');
-      document.getElementById('codeservir-input').focus();
-    } else {
-      chatWindow.classList.remove('open');
-    }
-  }
-
   // Initialize widget
   async function init() {
+    console.log('Codeservir Widget Initializing...');
     createWidget();
 
-    // Load session from localStorage
-    sessionId = localStorage.getItem(`codeservir_session_${chatbotId}`);
-    if (!sessionId) {
-      await createSession();
+    // Attach listeners IMMEDIATELY (Don't wait for network)
+    const btn = document.getElementById('codeservir-button');
+    const closeBtn = document.getElementById('codeservir-close');
+
+    if (btn) {
+      btn.addEventListener('click', () => {
+        console.log('Launcher Button Clicked');
+        toggleChat();
+      });
     }
 
-    await loadConfig();
-
-    // Event listeners
-    document.getElementById('codeservir-button').addEventListener('click', toggleChat);
-    document.getElementById('codeservir-close').addEventListener('click', toggleChat);
+    if (closeBtn) {
+      closeBtn.addEventListener('click', toggleChat);
+    }
 
     document.getElementById('codeservir-send').addEventListener('click', () => {
       const input = document.getElementById('codeservir-input');
@@ -506,6 +497,27 @@
         sendMessage(e.target.value);
       }
     });
+
+    // Now do async work
+    await createSession();
+    await loadConfig();
+  }
+
+  // Toggle chat window
+  function toggleChat() {
+    console.log('Toggling Chat. Current state:', isOpen);
+    isOpen = !isOpen;
+    const chatWindow = document.getElementById('codeservir-chat-window');
+    const input = document.getElementById('codeservir-input');
+
+    if (isOpen) {
+      console.log('Opening chat window...');
+      chatWindow.classList.add('open');
+      if (input) setTimeout(() => input.focus(), 100);
+    } else {
+      console.log('Closing chat window...');
+      chatWindow.classList.remove('open');
+    }
   }
 
   // Start when DOM is ready
