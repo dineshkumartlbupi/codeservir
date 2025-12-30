@@ -1,7 +1,6 @@
 import * as cheerio from 'cheerio';
 import axios from 'axios';
 // Puppeteer will be imported dynamically to avoid serverless cold start/size issues
-import type { Browser } from 'puppeteer';
 
 
 export interface ScrapedContent {
@@ -30,7 +29,7 @@ export class WebScraperService {
             // On Vercel, Puppeteer often requires specific configuration (chrome-aws-lambda).
             // For now, we'll try to launch, but fallback to simple scraping if it fails
             // or if we detect we are in a serverless environment without proper setup.
-            let browser: Browser;
+            let browser: any;
             try {
                 if (process.env.VERCEL) {
                     console.warn('⚠️ Running on Vercel: dynamic scraping with Puppeteer might be limited. Consider using a dedicated scraping API.');
