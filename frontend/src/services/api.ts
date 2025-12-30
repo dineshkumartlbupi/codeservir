@@ -1,162 +1,19 @@
-// API Configuration
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://codeservir-api.vercel.app';
+// API service for chatbot operations
+const API_URL = process.env.REACT_APP_API_URL || 'https://codeservir-api.vercel.app';
 
-// API Client with error handling
-class ApiClient {
-    private baseURL: string;
-
-    constructor(baseURL: string) {
-        this.baseURL = baseURL;
-    }
-
-    private async request<T>(
-        endpoint: string,
-        options: RequestInit = {}
-    ): Promise<T> {
-        const url = `${this.baseURL}${endpoint}`;
-
-        const config: RequestInit = {
-            ...options,
-            headers: {
-                'Content-Type': 'application/json',
-                ...options.headers,
-            },
-        };
-
-        try {
-            const response = await fetch(url, config);
-
-            if (!response.ok) {
-                const error = await response.json().catch(() => ({ message: 'Request failed' }));
-                throw new Error(error.message || `HTTP ${response.status}`);
-            }
-
-            return await response.json();
-        } catch (error) {
-            console.error('API Error:', error);
-            throw error;
-        }
-    }
-
-    // Auth endpoints
-    async googleLogin(idToken: string, userData: any) {
-        return this.request('/api/auth/google-login', {
-            method: 'POST',
-            body: JSON.stringify({ idToken, user: userData }),
-        });
-    }
-
-    async emailLogin(email: string, password: string) {
-        return this.request('/api/auth/login', {
-            method: 'POST',
-            body: JSON.stringify({ email, password }),
-        });
-    }
-
-    async signup(userData: any) {
-        return this.request('/api/auth/signup', {
-            method: 'POST',
-            body: JSON.stringify(userData),
-        });
-    }
-
-    // Chatbot endpoints
-    async createChatbot(data: any, token?: string) {
-        return this.request('/api/chatbot/create', {
-            method: 'POST',
-            headers: token ? { Authorization: `Bearer ${token}` } : {},
-            body: JSON.stringify(data),
-        });
-    }
-
-    async getChatbots(token?: string) {
-        return this.request('/api/chatbot/list', {
-            method: 'GET',
-            headers: token ? { Authorization: `Bearer ${token}` } : {},
-        });
-    }
-
-    async getChatbot(id: string, token?: string) {
-        return this.request(`/api/chatbot/${id}`, {
-            method: 'GET',
-            headers: token ? { Authorization: `Bearer ${token}` } : {},
-        });
-    }
-
-    async updateChatbot(id: string, data: any, token?: string) {
-        return this.request(`/api/chatbot/${id}`, {
-            method: 'PUT',
-            headers: token ? { Authorization: `Bearer ${token}` } : {},
-            body: JSON.stringify(data),
-        });
-    }
-
-    async deleteChatbot(id: string, token?: string) {
-        return this.request(`/api/chatbot/${id}`, {
-            method: 'DELETE',
-            headers: token ? { Authorization: `Bearer ${token}` } : {},
-        });
-    }
-
-    async trainChatbot(id: string, trainingData: any, token?: string) {
-        return this.request(`/api/chatbot/${id}/train`, {
-            method: 'POST',
-            headers: token ? { Authorization: `Bearer ${token}` } : {},
-            body: JSON.stringify({ trainingData }),
-        });
-    }
-
-    // Analytics endpoints
-    async getChatbotAnalytics(id: string, token?: string) {
-        return this.request(`/api/chatbot/${id}/analytics`, {
-            method: 'GET',
-            headers: token ? { Authorization: `Bearer ${token}` } : {},
-        });
-    }
-
-    async getDashboardStats(token?: string) {
-        return this.request('/api/dashboard/stats', {
-            method: 'GET',
-            headers: token ? { Authorization: `Bearer ${token}` } : {},
-        });
-    }
-
-    // User endpoints
-    async updateProfile(data: any, token?: string) {
-        return this.request('/api/user/profile', {
-            method: 'PUT',
-            headers: token ? { Authorization: `Bearer ${token}` } : {},
-            body: JSON.stringify(data),
-        });
-    }
-
-    async getProfile(token?: string) {
-        return this.request('/api/user/profile', {
-            method: 'GET',
-            headers: token ? { Authorization: `Bearer ${token}` } : {},
-        });
-    }
-}
-
-// Export singleton instance
-export const api = new ApiClient(API_BASE_URL);
-
-// Export types
-export interface ChatbotData {
+export interface Chatbot {
+    id: string;
     name: string;
-    description: string;
+    businessName: string;
+    description?: string;
     website: string;
-    email: string;
-    phone?: string;
-    primaryColor?: string;
-    secondaryColor?: string;
-}
-
-export interface ChatbotResponse {
-    success: boolean;
-    chatbotId: string;
-    message: string;
-    embedCode?: string;
+    websiteUrl?: string;
+    contactEmail: string;
+    status: 'active' | 'inactive';
+    conversations: number;
+    lastActive: string;
+    createdAt: string;
+    ownerEmail?: string;
 }
 
 export interface DashboardStats {
@@ -166,13 +23,186 @@ export interface DashboardStats {
     responseRate: string;
 }
 
-export interface Chatbot {
-    id: string;
-    name: string;
-    description: string;
-    website: string;
-    status: 'active' | 'inactive';
-    conversations: number;
-    lastActive: string;
-    createdAt: string;
+export interface ChatbotLimitResponse {
+    canCreate: boolean;
+    currentCount: number;
+    maxLimit: number;
+    requiresUpgrade: boolean;
+    message: string;
 }
+
+export const api = {
+    // Check if user can create more chatbots
+    async checkChatbotLimit(email: string): Promise<ChatbotLimitResponse> {
+        try {
+            const response = await fetch(`${API_URL}/api/chatbot/check-limit`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ email }),
+            });
+            return await response.json();
+        } catch (error) {
+            console.error('Error checking limit:', error);
+            // Return default allowing creation if API fails
+            return {
+                canCreate: true,
+                currentCount: 0,
+                maxLimit: 5,
+                requiresUpgrade: false,
+                message: 'You can create chatbots'
+            };
+        }
+    },
+
+    // Get all chatbots for an email
+    async getChatbotsByEmail(email: string, token?: string): Promise<{ chatbots: Chatbot[], total: number }> {
+        try {
+            const headers: any = {
+                'Content-Type': 'application/json',
+            };
+            if (token) {
+                headers['Authorization'] = `Bearer ${token}`;
+            }
+
+            const response = await fetch(`${API_URL}/api/chatbot/by-email`, {
+                method: 'POST',
+                headers,
+                body: JSON.stringify({ email }),
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to fetch chatbots');
+            }
+
+            return await response.json();
+        } catch (error) {
+            console.error('Error fetching chatbots:', error);
+            return { chatbots: [], total: 0 };
+        }
+    },
+
+    // Create chatbot
+    async createChatbot(data: any, token?: string): Promise<any> {
+        const headers: any = {
+            'Content-Type': 'application/json',
+        };
+        if (token) {
+            headers['Authorization'] = `Bearer ${token}`;
+        }
+
+        const response = await fetch(`${API_URL}/api/chatbot/create`, {
+            method: 'POST',
+            headers,
+            body: JSON.stringify(data),
+        });
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.message || 'Failed to create chatbot');
+        }
+
+        return await response.json();
+    },
+
+    // Get chatbots (for logged in users)
+    async getChatbots(token?: string): Promise<{ chatbots: Chatbot[] }> {
+        try {
+            const headers: any = {
+                'Content-Type': 'application/json',
+            };
+            if (token) {
+                headers['Authorization'] = `Bearer ${token}`;
+            }
+
+            const response = await fetch(`${API_URL}/api/chatbot/list`, {
+                method: 'GET',
+                headers,
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to fetch chatbots');
+            }
+
+            return await response.json();
+        } catch (error) {
+            console.error('Error fetching chatbots:', error);
+            return { chatbots: [] };
+        }
+    },
+
+    // Update chatbot
+    async updateChatbot(id: string, data: any, token?: string): Promise<any> {
+        const headers: any = {
+            'Content-Type': 'application/json',
+        };
+        if (token) {
+            headers['Authorization'] = `Bearer ${token}`;
+        }
+
+        const response = await fetch(`${API_URL}/api/chatbot/${id}`, {
+            method: 'PUT',
+            headers,
+            body: JSON.stringify(data),
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to update chatbot');
+        }
+
+        return await response.json();
+    },
+
+    // Delete chatbot
+    async deleteChatbot(id: string, token?: string): Promise<any> {
+        const headers: any = {
+            'Content-Type': 'application/json',
+        };
+        if (token) {
+            headers['Authorization'] = `Bearer ${token}`;
+        }
+
+        const response = await fetch(`${API_URL}/api/chatbot/${id}`, {
+            method: 'DELETE',
+            headers,
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to delete chatbot');
+        }
+
+        return await response.json();
+    },
+
+    // Get dashboard stats
+    async getDashboardStats(token?: string): Promise<DashboardStats> {
+        try {
+            const headers: any = {
+                'Content-Type': 'application/json',
+            };
+            if (token) {
+                headers['Authorization'] = `Bearer ${token}`;
+            }
+
+            const response = await fetch(`${API_URL}/api/dashboard/stats`, {
+                method: 'GET',
+                headers,
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to fetch stats');
+            }
+
+            return await response.json();
+        } catch (error) {
+            console.error('Error fetching stats:', error);
+            return {
+                totalChatbots: 0,
+                totalConversations: 0,
+                activeUsers: 0,
+                responseRate: '0%'
+            };
+        }
+    },
+};

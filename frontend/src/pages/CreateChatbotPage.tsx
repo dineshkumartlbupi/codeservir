@@ -40,6 +40,8 @@ const CreateChatbotPage: React.FC = () => {
     const [loading, setLoading] = useState(false);
     const [chatbotResponse, setChatbotResponse] = useState<ChatbotResponse | null>(null);
     const [error, setError] = useState<string>('');
+    const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+    const [limitInfo, setLimitInfo] = useState<{ current: number, max: number } | null>(null);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         setFormData({
@@ -56,6 +58,29 @@ const CreateChatbotPage: React.FC = () => {
         try {
             const API_URL = process.env.REACT_APP_API_URL || 'https://codeservir-api.vercel.app';
 
+            // First, check the limit
+            const limitResponse = await fetch(`${API_URL}/api/chatbot/check-limit`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ email: formData.contactEmail }),
+            });
+
+            const limitData = await limitResponse.json();
+
+            // If limit exceeded, show upgrade modal
+            if (!limitData.canCreate) {
+                setLimitInfo({
+                    current: limitData.currentCount,
+                    max: limitData.maxLimit
+                });
+                setShowUpgradeModal(true);
+                setLoading(false);
+                return;
+            }
+
+            // Proceed with chatbot creation
             const response = await fetch(`${API_URL}/api/chatbot/create`, {
                 method: 'POST',
                 headers: {
@@ -218,6 +243,99 @@ const CreateChatbotPage: React.FC = () => {
                         animation: bounce 2s infinite;
                     }
                 `}</style>
+            </div>
+        );
+    }
+
+    // Upgrade Modal
+    if (showUpgradeModal) {
+        return (
+            <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center px-4">
+                <div className="bg-white/10 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/20 p-8 md:p-12 max-w-2xl">
+                    {/* Icon */}
+                    <div className="text-center mb-6">
+                        <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-yellow-400 to-orange-600 rounded-full mb-4">
+                            <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                            </svg>
+                        </div>
+                        <h1 className="text-4xl font-bold text-white mb-4">
+                            Free Limit Reached! 🎯
+                        </h1>
+                        <p className="text-xl text-purple-200 mb-2">
+                            You've created {limitInfo?.current} out of {limitInfo?.max} free chatbots
+                        </p>
+                        <p className="text-lg text-purple-300">
+                            Upgrade to Premium to create unlimited chatbots!
+                        </p>
+                    </div>
+
+                    {/* Features */}
+                    <div className="bg-gradient-to-br from-purple-500/20 to-pink-500/20 backdrop-blur-sm rounded-2xl p-6 mb-8 border border-purple-300/30">
+                        <h2 className="text-2xl font-bold text-white mb-4">Premium Benefits:</h2>
+                        <ul className="space-y-3">
+                            <li className="flex items-start gap-3 text-purple-100">
+                                <span className="text-green-400 text-xl">✓</span>
+                                <span><strong>Unlimited Chatbots</strong> - Create as many as you need</span>
+                            </li>
+                            <li className="flex items-start gap-3 text-purple-100">
+                                <span className="text-green-400 text-xl">✓</span>
+                                <span><strong>Advanced Analytics</strong> - Track performance & insights</span>
+                            </li>
+                            <li className="flex items-start gap-3 text-purple-100">
+                                <span className="text-green-400 text-xl">✓</span>
+                                <span><strong>Priority Support</strong> - Get help when you need it</span>
+                            </li>
+                            <li className="flex items-start gap-3 text-purple-100">
+                                <span className="text-green-400 text-xl">✓</span>
+                                <span><strong>Custom Branding</strong> - Remove "Powered by CodeServir"</span>
+                            </li>
+                            <li className="flex items-start gap-3 text-purple-100">
+                                <span className="text-green-400 text-xl">✓</span>
+                                <span><strong>API Access</strong> - Integrate with your systems</span>
+                            </li>
+                        </ul>
+                    </div>
+
+                    {/* Pricing */}
+                    <div className="bg-gradient-to-r from-purple-600 to-pink-600 rounded-2xl p-6 mb-6 text-center">
+                        <p className="text-purple-100 text-sm mb-2">Starting at</p>
+                        <p className="text-5xl font-bold text-white mb-2">$29<span className="text-2xl">/mo</span></p>
+                        <p className="text-purple-100">Billed monthly, cancel anytime</p>
+                    </div>
+
+                    {/* Buttons */}
+                    <div className="flex flex-col sm:flex-row gap-4">
+                        <a
+                            href="/pricing"
+                            className="flex-1 px-6 py-4 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-xl font-bold text-center transition-all hover:scale-105 shadow-lg"
+                        >
+                            🚀 Upgrade to Premium
+                        </a>
+                        <button
+                            onClick={() => {
+                                setShowUpgradeModal(false);
+                                setFormData({
+                                    ...formData,
+                                    contactEmail: ''
+                                });
+                            }}
+                            className="flex-1 px-6 py-4 bg-white/10 hover:bg-white/20 text-white rounded-xl font-semibold transition-all"
+                        >
+                            Try Different Email
+                        </button>
+                    </div>
+
+                    {/* Login Suggestion */}
+                    <div className="mt-6 text-center">
+                        <p className="text-purple-200 text-sm">
+                            Already have an account?{' '}
+                            <a href="/login" className="text-purple-400 hover:text-purple-300 font-semibold underline">
+                                Login to manage your chatbots
+                            </a>
+                        </p>
+                    </div>
+                </div>
             </div>
         );
     }
