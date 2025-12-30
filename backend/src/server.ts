@@ -69,16 +69,7 @@ app.get('/embed/:chatbotId', (req: Request, res: Response) => {
     res.sendFile(path.join(publicPath, 'embed.html'));
 });
 
-// 404 handler
-app.use((req: Request, res: Response) => {
-    res.status(404).json({ error: 'Route not found' });
-});
-
-// Error handler
-app.use((err: any, req: Request, res: Response, next: any) => {
-    console.error('Server error:', err);
-    res.status(500).json({ error: 'Internal server error' });
-});
+// (Handlers moved to end of file)
 
 // Minimal debug route
 app.get('/api/ping', (req, res) => res.send('pong'));
@@ -135,6 +126,17 @@ app.get('/api/debug/diagnose', async (req, res) => {
     res.json(report);
 });
 
+// 404 handler (Must be last)
+app.use((req: Request, res: Response) => {
+    res.status(404).json({ error: 'Route not found' });
+});
+
+// Error handler (Must be very last)
+app.use((err: any, req: Request, res: Response, next: any) => {
+    console.error('Server error:', err);
+    res.status(500).json({ error: 'Internal server error' });
+});
+
 // Initialize services and start server
 const startServer = async () => {
     try {
@@ -171,7 +173,7 @@ if (process.env.VERCEL) {
     // In Vercel, we don't start the server, just initialize services
     // Avoid eager connection to Redis to prevent startup timeouts
     console.log('🚀 Running in Vercel environment');
-    connectRedis().catch(err => console.warn('Redis init warning (non-fatal):', err.message));
+    // connectRedis().catch(err => console.warn('Redis init warning (non-fatal):', err.message));
 } else {
     // Local development
     startServer();
