@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import TrainChatbot from './TrainChatbot';
+import { useAuth } from '../contexts/AuthContext';
 
 interface FormData {
     ownerName: string;
@@ -25,6 +26,7 @@ interface ChatbotResponse {
 }
 
 const LandingPage: React.FC = () => {
+    const { user } = useAuth();
     const [formData, setFormData] = useState<FormData>({
         ownerName: '',
         businessName: '',
@@ -56,10 +58,14 @@ const LandingPage: React.FC = () => {
         try {
             const API_URL = process.env.REACT_APP_API_URL || 'https://codeservir-api.vercel.app';
 
+            // Get Firebase auth token
+            const token = await user?.getIdToken();
+
             const response = await fetch(`${API_URL}/api/chatbot/create`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
+                    ...(token && { 'Authorization': `Bearer ${token}` }),
                 },
                 body: JSON.stringify(formData),
             });
