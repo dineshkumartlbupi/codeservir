@@ -3,7 +3,7 @@ import express, { Application, Request, Response } from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import path from 'path';
-import { connectRedis } from './config/redis';
+import redisClient, { connectionError, connectRedis } from './config/redis';
 
 // Import routes
 import chatbotRoutes from './routes/chatbot.routes';
