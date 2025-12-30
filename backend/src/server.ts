@@ -82,6 +82,8 @@ app.get('/api/debug/diagnose', async (req, res) => {
             vercel: !!process.env.VERCEL,
             has_db_url: !!process.env.DATABASE_URL,
             has_redis_url: !!process.env.REDIS_URL,
+            has_kv_url: !!process.env.KV_URL,
+            has_upstash_url: !!process.env.UPSTASH_REDIS_REST_URL,
             node_env: process.env.NODE_ENV
         }
     };
@@ -106,10 +108,11 @@ app.get('/api/debug/diagnose', async (req, res) => {
 
     // Check Redis
     try {
-        const { default: redisClient } = await import('./config/redis');
+        const { default: redisClient, connectionError } = await import('./config/redis');
         report.redis = {
             isOpen: redisClient.isOpen,
-            isReady: redisClient.isReady
+            isReady: redisClient.isReady,
+            connectionError: connectionError
         };
         if (redisClient.isOpen) {
             await redisClient.set('debug_key', 'ok');
