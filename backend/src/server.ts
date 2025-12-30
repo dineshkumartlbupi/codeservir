@@ -119,7 +119,7 @@ if (process.env.VERCEL) {
     // In Vercel, we don't start the server, just initialize services
     // Avoid eager connection to Redis to prevent startup timeouts
     console.log('🚀 Running in Vercel environment');
-    // connectRedis().catch(err => console.warn('⚠️ Redis init warning (non-fatal):', err.message));
+    connectRedis().catch(err => console.warn('⚠️ Redis init warning (non-fatal):', err.message));
 } else {
     // Local development
     startServer();

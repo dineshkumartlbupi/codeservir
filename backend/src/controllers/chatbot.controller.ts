@@ -163,8 +163,18 @@ export class ChatbotController {
      * Generate embed code
      */
     private generateEmbedCode(chatbotId: string): string {
-        const cdnUrl = process.env.CDN_URL || 'http://localhost:5001';
-        console.log('Using CDN URL:', cdnUrl, 'Env:', process.env.CDN_URL);
+        // Use production URL if in Vercel, otherwise explicit ENV or localhost
+        let cdnUrl = process.env.CDN_URL;
+
+        if (!cdnUrl) {
+            if (process.env.VERCEL) {
+                cdnUrl = 'https://codeservir-api.vercel.app';
+            } else {
+                cdnUrl = 'http://localhost:5001';
+            }
+        }
+
+        console.log('Using CDN URL:', cdnUrl);
 
         return `<script>
 (function () {
