@@ -17,7 +17,7 @@ const MyChatbotsPage: React.FC = () => {
         try {
             setLoading(true);
             const token = await user?.getIdToken();
-            const data = await api.getChatbots(token);
+            const data = await api.getChatbots(token) as { chatbots: Chatbot[] };
             setChatbots(data.chatbots || []);
         } catch (err: any) {
             console.error('Failed to fetch chatbots:', err);
