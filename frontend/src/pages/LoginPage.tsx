@@ -1,15 +1,22 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { signInWithGoogle } from '../config/firebase';
 
 const LoginPage: React.FC = () => {
+    const navigate = useNavigate();
     const [formData, setFormData] = useState({
         email: '',
         password: '',
         rememberMe: false
     });
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState('');
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
+        setLoading(true);
+        setError('');
+
         // Handle login logic here
         console.log('Login:', formData);
         // API call: POST /api/auth/login
@@ -17,11 +24,40 @@ const LoginPage: React.FC = () => {
         // Redirect based on role:
         // - Admin: /admin/dashboard
         // - User: /dashboard
+
+        // Simulate API call
+        setTimeout(() => {
+            setLoading(false);
+            // navigate('/dashboard');
+        }, 1000);
     };
 
-    const handleGoogleLogin = () => {
-        // Handle Google login
-        console.log('Google login');
+    const handleGoogleLogin = async () => {
+        setLoading(true);
+        setError('');
+
+        try {
+            const result = await signInWithGoogle();
+
+            if (result.success && result.user && result.idToken) {
+                console.log('Google Sign-In Success:', result.user);
+
+                // Send to your backend to create/login user
+                // POST /api/auth/google-login
+                // Body: { idToken: result.idToken, user: result.user }
+
+                // For now, redirect to dashboard
+                // In production, wait for backend response to determine role
+                alert(`Welcome ${result.user.displayName}!`);
+                // navigate('/dashboard');
+            } else {
+                setError(result.error || 'Google sign-in failed');
+            }
+        } catch (err: any) {
+            setError(err.message || 'An error occurred during Google sign-in');
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
@@ -39,6 +75,13 @@ const LoginPage: React.FC = () => {
                         <h1 className="text-4xl font-bold text-white mb-2">Welcome Back</h1>
                         <p className="text-purple-200">Sign in to manage your chatbots</p>
                     </div>
+
+                    {/* Error Message */}
+                    {error && (
+                        <div className="mb-6 p-4 bg-red-500/10 border border-red-400/20 rounded-xl">
+                            <p className="text-sm text-red-200 text-center">{error}</p>
+                        </div>
+                    )}
 
                     <form onSubmit={handleSubmit} className="space-y-6">
                         {/* Email */}
@@ -109,9 +152,10 @@ const LoginPage: React.FC = () => {
                         {/* Submit Button */}
                         <button
                             type="submit"
-                            className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white py-3 px-4 rounded-xl font-semibold transition-all hover:scale-105 shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
+                            disabled={loading}
+                            className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white py-3 px-4 rounded-xl font-semibold transition-all hover:scale-105 shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
                         >
-                            Sign in to Account
+                            {loading ? 'Signing in...' : 'Sign in to Account'}
                         </button>
 
                         {/* Divider */}
@@ -128,7 +172,8 @@ const LoginPage: React.FC = () => {
                         <button
                             type="button"
                             onClick={handleGoogleLogin}
-                            className="w-full flex items-center justify-center gap-3 bg-white/10 backdrop-blur-sm border border-white/20 text-white py-3 px-4 rounded-xl font-medium hover:bg-white/20 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
+                            disabled={loading}
+                            className="w-full flex items-center justify-center gap-3 bg-white/10 backdrop-blur-sm border border-white/20 text-white py-3 px-4 rounded-xl font-medium hover:bg-white/20 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             <svg className="w-5 h-5" viewBox="0 0 24 24">
                                 <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
@@ -136,7 +181,7 @@ const LoginPage: React.FC = () => {
                                 <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
                                 <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
                             </svg>
-                            Sign in with Google
+                            {loading ? 'Signing in...' : 'Sign in with Google'}
                         </button>
                     </form>
 

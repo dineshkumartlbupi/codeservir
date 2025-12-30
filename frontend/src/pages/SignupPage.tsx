@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { signInWithGoogle } from '../config/firebase';
 
 const SignupPage: React.FC = () => {
+    const navigate = useNavigate();
     const [formData, setFormData] = useState({
         fullName: '',
         email: '',
@@ -10,21 +12,52 @@ const SignupPage: React.FC = () => {
         businessName: '',
         phone: ''
     });
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState('');
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         if (formData.password !== formData.confirmPassword) {
-            alert('Passwords do not match!');
+            setError('Passwords do not match!');
             return;
         }
+        setLoading(true);
+        setError('');
+
         // Handle signup logic here - create user account
         console.log('Signup:', formData);
         // API call: POST /api/auth/signup
+
+        setTimeout(() => {
+            setLoading(false);
+            // navigate('/dashboard');
+        }, 1000);
     };
 
-    const handleGoogleSignup = () => {
-        // Handle Google signup
-        console.log('Google signup');
+    const handleGoogleSignup = async () => {
+        setLoading(true);
+        setError('');
+
+        try {
+            const result = await signInWithGoogle();
+
+            if (result.success && result.user && result.idToken) {
+                console.log('Google Sign-Up Success:', result.user);
+
+                // Send to your backend to create user account
+                // POST /api/auth/google-signup
+                // Body: { idToken: result.idToken, user: result.user }
+
+                alert(`Welcome ${result.user.displayName}!`);
+                // navigate('/dashboard');
+            } else {
+                setError(result.error || 'Google sign-up failed');
+            }
+        } catch (err: any) {
+            setError(err.message || 'An error occurred during Google sign-up');
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
