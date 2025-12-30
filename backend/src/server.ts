@@ -110,7 +110,14 @@ app.get('/api/debug/diagnose', async (req, res) => {
 
     // Check Redis
     try {
-        const { default: redisClient, connectionError } = await import('./config/redis');
+        const { default: redisClient, connectionError, connectRedis } = await import('./config/redis');
+
+        // Try to connect if closed
+        if (!redisClient.isOpen) {
+            console.log('Debug: Force connecting to Redis...');
+            await connectRedis();
+        }
+
         report.redis = {
             isOpen: redisClient.isOpen,
             isReady: redisClient.isReady,

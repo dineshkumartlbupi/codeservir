@@ -41,8 +41,11 @@ const redisClient = createClient(
         }
 );
 
+export let connectionError: string | null = null;
+
 redisClient.on('error', (err) => {
     console.error('❌ Redis Client Error:', err);
+    connectionError = err.message;
 });
 
 redisClient.on('connect', () => {
@@ -53,7 +56,7 @@ redisClient.on('ready', () => {
     console.log('✅ Redis client ready');
 });
 
-export let connectionError: string | null = null;
+
 
 export const connectRedis = async () => {
     try {
