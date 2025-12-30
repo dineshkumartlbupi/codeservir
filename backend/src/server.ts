@@ -76,6 +76,9 @@ app.use((err: any, req: Request, res: Response, next: any) => {
     res.status(500).json({ error: 'Internal server error' });
 });
 
+// Minimal debug route
+app.get('/api/ping', (req, res) => res.send('pong'));
+
 // Initialize services and start server
 const startServer = async () => {
     try {
@@ -110,9 +113,9 @@ process.on('unhandledRejection', (reason, promise) => {
 
 if (process.env.VERCEL) {
     // In Vercel, we don't start the server, just initialize services
-    // We catch errors but DO NOT exit, so the server/health check can still run
+    // Avoid eager connection to Redis to prevent startup timeouts
     console.log('🚀 Running in Vercel environment');
-    connectRedis().catch(err => console.warn('⚠️ Redis init warning (non-fatal):', err.message));
+    // connectRedis().catch(err => console.warn('⚠️ Redis init warning (non-fatal):', err.message));
 } else {
     // Local development
     startServer();
