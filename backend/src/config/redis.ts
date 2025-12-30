@@ -3,10 +3,27 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
+const redisUrl = process.env.REDIS_URL;
+if (redisUrl) {
+    console.log('🔌 Redis Config: Using REDIS_URL (starts with ' + redisUrl.substring(0, 15) + '...)');
+} else {
+    console.log('🔌 Redis Config: Using Host/Port', process.env.REDIS_HOST, process.env.REDIS_PORT);
+}
+
 const redisClient = createClient(
-    process.env.REDIS_URL
+    redisUrl
         ? {
-            url: process.env.REDIS_URL,
+            url: redisUrl,
+            socket: {
+                reconnectStrategy: (retries) => {
+                    if (retries > 5) {
+                        console.error('❌ Redis: Max retries exceeded');
+                        return new Error('Max retries exceeded');
+                    }
+                    console.log(`Redis reconnecting attempt ${retries}...`);
+                    return Math.min(retries * 100, 3000);
+                }
+            }
         }
         : {
             socket: {
@@ -18,11 +35,11 @@ const redisClient = createClient(
 );
 
 redisClient.on('error', (err) => {
-    console.error('Redis Client Error:', err);
+    console.error('❌ Redis Client Error:', err);
 });
 
 redisClient.on('connect', () => {
-    console.log('✅ Connected to Redis');
+    console.log('✅ Connected to Redis (Connection established)');
 });
 
 redisClient.on('ready', () => {
