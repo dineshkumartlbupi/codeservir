@@ -277,7 +277,11 @@ export class ChatbotService {
 
             const chatLimit = subResult.rows[0]?.chat_limit || 1000;
 
-            if (chatCount >= chatLimit) {
+            // Ensure numeric comparison (Handle BIGINT strings from PG)
+            const currentCount = Number(chatCount);
+            const limit = Number(chatLimit);
+
+            if (currentCount >= limit) {
                 return {
                     allowed: false,
                     reason: `Your free chat limit is over (Count: ${chatCount}, Limit: ${chatLimit}). Please upgrade your plan to continue using the chatbot.`,
