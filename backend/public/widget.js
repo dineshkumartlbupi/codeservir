@@ -72,6 +72,25 @@
           width: 32px;
           height: 32px;
           fill: white;
+          z-index: 10;
+        }
+
+        #codeservir-button::before {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          border-radius: 50%;
+          background: inherit;
+          z-index: -1;
+          animation: codeservir-pulse-ring 2s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+        }
+
+        @keyframes codeservir-pulse-ring {
+          0% { transform: scale(0.95); opacity: 0.5; }
+          100% { transform: scale(1.6); opacity: 0; }
         }
 
         /* --- Chat Window --- */
