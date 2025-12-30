@@ -15,7 +15,7 @@ const HomePage: React.FC = () => {
             <section className="relative pt-32 pb-20 px-4">
                 <div className="max-w-6xl mx-auto text-center">
                     {/* Logo Icon */}
-                    <div className="inline-flex items-center justify-center mb-8">
+                    {/* <div className="inline-flex items-center justify-center mb-8">
                         <div className="relative">
                             <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full blur-2xl opacity-50 animate-pulse"></div>
                             <div className="relative bg-gradient-to-br from-purple-600 to-pink-600 p-6 rounded-3xl shadow-2xl">
@@ -24,11 +24,11 @@ const HomePage: React.FC = () => {
                                 </svg>
                             </div>
                         </div>
-                    </div>
+                    </div> */}
 
-                    <h1 className="text-6xl md:text-7xl lg:text-8xl font-bold mb-6 bg-gradient-to-r from-purple-400 via-pink-400 to-purple-400 bg-clip-text text-transparent animate-gradient">
+                    {/* <h1 className="text-6xl md:text-7xl lg:text-8xl font-bold mb-6 bg-gradient-to-r from-purple-400 via-pink-400 to-purple-400 bg-clip-text text-transparent animate-gradient">
                         CodeServir
-                    </h1>
+                    </h1> */}
                     <p className="text-2xl md:text-3xl lg:text-4xl font-light mb-6 text-purple-200">
                         AI-Powered Chatbot Platform
                     </p>
@@ -41,14 +41,13 @@ const HomePage: React.FC = () => {
                     <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
                         <Link
                             to="/create"
-                            className="px-8 py-4 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-xl font-bold text-lg transition-all hover:scale-105 shadow-2xl flex items-center gap-2"
+                            className="px-8 py-4 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-2xl font-bold text-lg transition-all hover:scale-105 shadow-2xl flex items-center gap-2 "
                         >
-                            <span className="text-2xl">🚀</span>
                             Create Your Chatbot
                         </Link>
                         <Link
                             to="/features"
-                            className="px-8 py-4 bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white rounded-xl font-semibold text-lg transition-all border border-white/20 flex items-center gap-2"
+                            className="px-8 py-4 bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white rounded-2xl font-semibold text-lg transition-all border border-white/20 flex items-center gap-2"
                         >
                             <span className="text-2xl">✨</span>
                             Explore Features
@@ -209,7 +208,7 @@ const HomePage: React.FC = () => {
                             to="/create"
                             className="inline-flex items-center gap-2 px-10 py-5 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-xl font-bold text-xl transition-all hover:scale-105 shadow-2xl"
                         >
-                            <span className="text-3xl">🚀</span>
+
                             Create Your Chatbot Now
                         </Link>
                     </div>

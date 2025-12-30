@@ -1,6 +1,5 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import Navigation from './components/Navigation';
 import Footer from './components/Footer';
 import HomePage from './pages/HomePage';
 import CreateChatbotPage from './pages/CreateChatbotPage';
@@ -9,6 +8,7 @@ import PricingPage from './pages/PricingPage';
 import DocsPage from './pages/DocsPage';
 import AboutPage from './pages/AboutPage';
 import ContactPage from './pages/ContactPage';
+import Navigation from './components/Navigation';
 
 function App() {
   return (
