@@ -83,6 +83,58 @@ app.use((err: any, req: Request, res: Response, next: any) => {
 // Minimal debug route
 app.get('/api/ping', (req, res) => res.send('pong'));
 
+// Debug Diagnosis Route
+app.get('/api/debug/diagnose', async (req, res) => {
+    const report: any = {
+        timestamp: new Date().toISOString(),
+        env: {
+            vercel: !!process.env.VERCEL,
+            has_db_url: !!process.env.DATABASE_URL,
+            has_redis_url: !!process.env.REDIS_URL,
+            node_env: process.env.NODE_ENV
+        }
+    };
+
+    // Check DB
+    try {
+        // We need to import query dynamically or duplicate logic here to check pool directly
+        // Assuming pool is exported from database.ts or valid global
+        const { query } = await import('./config/database');
+        const dbResult = await query('SELECT NOW() as time');
+        report.database = {
+            status: 'connected',
+            time: dbResult.rows[0].time
+        };
+    } catch (dbErr: any) {
+        console.error('DB Diagnosis Error:', dbErr);
+        report.database = {
+            status: 'failed',
+            error: dbErr.message
+        };
+    }
+
+    // Check Redis
+    try {
+        const { default: redisClient } = await import('./config/redis');
+        report.redis = {
+            isOpen: redisClient.isOpen,
+            isReady: redisClient.isReady
+        };
+        if (redisClient.isOpen) {
+            await redisClient.set('debug_key', 'ok');
+            report.redis.test_write = 'ok';
+        }
+    } catch (redisErr: any) {
+        console.error('Redis Diagnosis Error:', redisErr);
+        report.redis = {
+            status: 'failed',
+            error: redisErr.message
+        };
+    }
+
+    res.json(report);
+});
+
 // Initialize services and start server
 const startServer = async () => {
     try {
@@ -119,7 +171,7 @@ if (process.env.VERCEL) {
     // In Vercel, we don't start the server, just initialize services
     // Avoid eager connection to Redis to prevent startup timeouts
     console.log('🚀 Running in Vercel environment');
-    connectRedis().catch(err => console.warn('⚠️ Redis init warning (non-fatal):', err.message));
+    connectRedis().catch(err => console.warn('Redis init warning (non-fatal):', err.message));
 } else {
     // Local development
     startServer();
