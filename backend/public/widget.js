@@ -78,7 +78,7 @@
         #codeservir-chat-window {
           display: none;
           position: fixed;
-          bottom: 100px;
+          bottom: 20px;
           right: 20px;
           width: 380px;
           height: 650px;
