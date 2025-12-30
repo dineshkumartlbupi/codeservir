@@ -431,7 +431,7 @@
                 </button>
             </div>
             <div id="codeservir-powered">
-                Powered by <a href="https://www.codeservir.com/" target="_blank">CodeServir</a>
+                Powered by <a href="https://www.codeservir.com/" target="_blank">CodeServir.com</a>
             </div>
         </div>
       </div>
