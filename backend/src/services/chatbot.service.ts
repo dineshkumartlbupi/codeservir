@@ -280,7 +280,7 @@ export class ChatbotService {
             if (chatCount >= chatLimit) {
                 return {
                     allowed: false,
-                    reason: 'Your free chat limit is over. Please upgrade your plan to continue using the chatbot.',
+                    reason: `Your free chat limit is over (Count: ${chatCount}, Limit: ${chatLimit}). Please upgrade your plan to continue using the chatbot.`,
                 };
             }
 
