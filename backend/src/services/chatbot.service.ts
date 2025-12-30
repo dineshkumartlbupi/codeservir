@@ -95,7 +95,11 @@ export class ChatbotService {
             );
 
             // Initialize cache
-            await cacheSet(`chatbot:${chatbotId}:count`, '0');
+            try {
+                await cacheSet(`chatbot:${chatbotId}:count`, '0');
+            } catch (redisError) {
+                console.warn('⚠️ Redis cache init failed (continuing):', redisError);
+            }
 
             // Start knowledge base creation (async)
             this.buildKnowledgeBase(chatbot).catch(err => {
@@ -106,7 +110,7 @@ export class ChatbotService {
             return chatbot;
         } catch (error) {
             console.error('Error creating chatbot:', error);
-            throw new Error('Failed to create chatbot');
+            throw error; // Re-throw the original error to expose details
         }
     }
 
