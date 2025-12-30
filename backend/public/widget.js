@@ -309,13 +309,13 @@
         #codeservir-powered {
             text-align: center;
             font-size: 11px;
-            color: #ccc;
+            color: var(--primary-color, #4F46E5);
             margin-top: 8px;
             font-weight: 500;
         }
         
         #codeservir-powered a {
-            color: #ccc;
+            color: var(--primary-color, #4F46E5);
             text-decoration: none;
             transition: color 0.2s;
         }
@@ -562,12 +562,15 @@
   function toggleChat() {
     isOpen = !isOpen;
     const chatWindow = document.getElementById('codeservir-chat-window');
+    const chatButton = document.getElementById('codeservir-button');
 
     if (isOpen) {
       chatWindow.classList.add('open');
+      chatButton.style.display = 'none';
       document.getElementById('codeservir-input').focus();
     } else {
       chatWindow.classList.remove('open');
+      chatButton.style.display = 'flex';
     }
   }
 
