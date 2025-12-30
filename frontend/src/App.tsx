@@ -8,6 +8,8 @@ import PricingPage from './pages/PricingPage';
 import DocsPage from './pages/DocsPage';
 import AboutPage from './pages/AboutPage';
 import ContactPage from './pages/ContactPage';
+import PrivacyPolicyPage from './pages/PrivacyPolicyPage';
+import TermsOfServicePage from './pages/TermsOfServicePage';
 import Navigation from './components/Navigation';
 
 function App() {
@@ -23,6 +25,8 @@ function App() {
           <Route path="/docs" element={<DocsPage />} />
           <Route path="/about" element={<AboutPage />} />
           <Route path="/contact" element={<ContactPage />} />
+          <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
+          <Route path="/terms-of-service" element={<TermsOfServicePage />} />
         </Routes>
         <Footer />
       </div>
