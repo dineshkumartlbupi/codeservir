@@ -10,16 +10,13 @@ const Footer: React.FC = () => {
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
                     {/* Brand */}
                     <div className="col-span-1 md:col-span-2">
-                        <div className="flex items-center gap-3 mb-4">
-                            <div className="bg-gradient-to-br from-purple-600 to-pink-600 p-2 rounded-lg">
-                                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
-                                </svg>
-                            </div>
-                            <span className="text-xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
-                                CodeServir
-                            </span>
-                        </div>
+                        <Link to="/" className="inline-block mb-4">
+                            <img
+                                src="/logo-horizontal.png"
+                                alt="CodeServir Logo"
+                                className="h-10 w-auto hover:opacity-80 transition-opacity"
+                            />
+                        </Link>
                         <p className="text-purple-200 text-sm mb-4 max-w-md">
                             Create intelligent AI-powered chatbots for your website in minutes. No coding required. Fully customizable and responsive.
                         </p>
