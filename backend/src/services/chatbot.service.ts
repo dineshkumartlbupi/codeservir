@@ -254,6 +254,60 @@ export class ChatbotService {
             throw new Error('Failed to train chatbot');
         }
     }
+
+    /**
+     * Check chatbot limit for email
+     */
+    async checkLimit(email: string): Promise<{ canCreate: boolean; currentCount: number; maxLimit: number; requiresUpgrade: boolean }> {
+        const currentCount = await chatbotModel.countByEmail(email);
+
+        // TODO: integerate with userSubscriptionModel to get actual limit
+        // For now, assume 5 for free, unlimited for premium logic handled in controller/model later
+        // or just hardcode checking here using userSubscriptionModel
+
+        // Importing here to avoid circular dependency if any, though model imports are fine
+        const userSubscriptionModel = (await import('../models/user-subscription.model')).default;
+        const subscription = await userSubscriptionModel.findByEmail(email);
+
+        const isPremium = subscription?.planType === 'premium' && subscription?.status === 'active';
+        const maxLimit = isPremium ? 999999 : 5;
+
+        return {
+            canCreate: currentCount < maxLimit,
+            currentCount,
+            maxLimit,
+            requiresUpgrade: currentCount >= maxLimit && !isPremium
+        };
+    }
+
+    /**
+     * List chatbots by email
+     */
+    async listByEmail(email: string): Promise<Chatbot[]> {
+        return await chatbotModel.findByEmail(email);
+    }
+
+    /**
+     * List all chatbots
+     */
+    async findAll(): Promise<Chatbot[]> {
+        return await chatbotModel.findAll();
+    }
+
+    /**
+     * Update chatbot
+     */
+    async updateChatbot(id: string, data: any): Promise<Chatbot | null> {
+        return await chatbotModel.update(id, data);
+    }
+
+    /**
+     * Delete chatbot
+     */
+    async deleteChatbot(id: string): Promise<void> {
+        // TODO: clean up vector store/pinecone data
+        await chatbotModel.delete(id);
+    }
 }
 
 export default new ChatbotService();

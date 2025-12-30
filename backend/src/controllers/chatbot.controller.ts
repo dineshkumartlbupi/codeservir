@@ -163,6 +163,92 @@ export class ChatbotController {
     }
 
     /**
+     * Check chatbot creation limit
+     */
+    async checkLimit(req: Request, res: Response): Promise<void> {
+        try {
+            const { email } = req.body;
+            if (!email) {
+                res.status(400).json({ error: 'Email is required' });
+                return;
+            }
+
+            const limitInfo = await chatbotService.checkLimit(email);
+            res.json(limitInfo);
+        } catch (error) {
+            console.error('Check limit error:', error);
+            res.status(500).json({ error: 'Failed to check limit' });
+        }
+    }
+
+    /**
+     * Get chatbots by email (POST)
+     */
+    async listByEmail(req: Request, res: Response): Promise<void> {
+        try {
+            const { email } = req.body;
+            if (!email) {
+                res.status(400).json({ error: 'Email is required' });
+                return;
+            }
+
+            const chatbots = await chatbotService.listByEmail(email);
+            res.json({ chatbots, total: chatbots.length });
+        } catch (error) {
+            console.error('List by email error:', error);
+            res.status(500).json({ error: 'Failed to list chatbots' });
+        }
+    }
+
+    /**
+     * Get chatbots (GET, authenticated)
+     */
+    async listChatbots(req: Request, res: Response): Promise<void> {
+        try {
+            // For now return empty or use query param if needed
+            // Frontend uses listByEmail primarily for the new flow
+            res.json({ chatbots: [] });
+        } catch (error) {
+            res.status(500).json({ error: 'Failed' });
+        }
+    }
+
+    /**
+     * Update chatbot
+     */
+    async updateChatbot(req: Request, res: Response): Promise<void> {
+        try {
+            const { chatbotId } = req.params;
+            const updateData = req.body;
+
+            const updated = await chatbotService.updateChatbot(chatbotId, updateData);
+            if (!updated) {
+                res.status(404).json({ error: 'Chatbot not found' });
+                return;
+            }
+
+            res.json({ success: true, chatbot: updated });
+        } catch (error) {
+            console.error('Update error:', error);
+            res.status(500).json({ error: 'Failed to update' });
+        }
+    }
+
+    /**
+     * Delete chatbot
+     */
+    async deleteChatbot(req: Request, res: Response): Promise<void> {
+        try {
+            const { chatbotId } = req.params;
+            await chatbotService.deleteChatbot(chatbotId);
+            res.json({ success: true, message: 'Deleted successfully' });
+        } catch (error) {
+            console.error('Delete error:', error);
+            res.status(500).json({ error: 'Failed to delete' });
+        }
+    }
+
+    /**
      * Generate embed code
      */
     private generateEmbedCode(chatbotId: string): string {

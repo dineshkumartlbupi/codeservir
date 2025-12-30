@@ -154,6 +154,93 @@ class ChatbotModel {
         );
         return result.rows[0] || null;
     }
+
+    /**
+     * Find chatbots by email
+     */
+    async findByEmail(email: string): Promise<Chatbot[]> {
+        const result = await query(
+            `SELECT * FROM chatbots WHERE contact_email = $1 ORDER BY created_at DESC`,
+            [email]
+        );
+        return result.rows.map(this.mapRowToChatbot);
+    }
+
+    /**
+     * Count chatbots by email
+     */
+    async countByEmail(email: string): Promise<number> {
+        const result = await query(
+            `SELECT COUNT(*) FROM chatbots WHERE contact_email = $1`,
+            [email]
+        );
+        return parseInt(result.rows[0].count, 10);
+    }
+
+    /**
+     * Find all chatbots
+     */
+    async findAll(): Promise<Chatbot[]> {
+        const result = await query(
+            `SELECT * FROM chatbots ORDER BY created_at DESC`
+        );
+        return result.rows.map(this.mapRowToChatbot);
+    }
+
+    /**
+     * Update chatbot
+     */
+    async update(id: string, data: Partial<CreateChatbotDTO> & { status?: string }): Promise<Chatbot | null> {
+        const fields: string[] = [];
+        const values: any[] = [];
+        let idx = 1;
+
+        if (data.ownerName) { fields.push(`owner_name = $${idx++}`); values.push(data.ownerName); }
+        if (data.businessName) { fields.push(`business_name = $${idx++}`); values.push(data.businessName); }
+        if (data.websiteUrl) { fields.push(`website_url = $${idx++}`); values.push(data.websiteUrl); }
+        if (data.contactNumber) { fields.push(`contact_number = $${idx++}`); values.push(data.contactNumber); }
+        if (data.contactEmail) { fields.push(`contact_email = $${idx++}`); values.push(data.contactEmail); }
+        if (data.businessAddress) { fields.push(`business_address = $${idx++}`); values.push(data.businessAddress); }
+        if (data.businessDescription) { fields.push(`business_description = $${idx++}`); values.push(data.businessDescription); }
+        if (data.primaryColor) { fields.push(`primary_color = $${idx++}`); values.push(data.primaryColor); }
+        if (data.secondaryColor) { fields.push(`secondary_color = $${idx++}`); values.push(data.secondaryColor); }
+        if (data.status) { fields.push(`status = $${idx++}`); values.push(data.status); }
+
+        if (fields.length === 0) return this.findById(id);
+
+        values.push(id);
+        const result = await query(
+            `UPDATE chatbots SET ${fields.join(', ')} WHERE id = $${idx} RETURNING *`,
+            values
+        );
+
+        if (result.rows.length === 0) return null;
+        return this.mapRowToChatbot(result.rows[0]);
+    }
+
+    /**
+     * Delete chatbot
+     */
+    async delete(id: string): Promise<void> {
+        await query('DELETE FROM chatbots WHERE id = $1', [id]);
+    }
+
+    private mapRowToChatbot(row: any): Chatbot {
+        return {
+            id: row.id,
+            ownerName: row.owner_name,
+            businessName: row.business_name,
+            websiteUrl: row.website_url,
+            contactNumber: row.contact_number,
+            contactEmail: row.contact_email,
+            businessAddress: row.business_address,
+            businessDescription: row.business_description,
+            primaryColor: row.primary_color,
+            secondaryColor: row.secondary_color,
+            createdAt: row.created_at,
+            status: row.status
+        };
+    }
 }
 
 export default new ChatbotModel();
