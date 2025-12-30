@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { signInWithGoogle } from '../config/firebase';
+import { useAuth } from '../contexts/AuthContext';
 
 const LoginPage: React.FC = () => {
     const navigate = useNavigate();
+    const { setUser } = useAuth();
     const [formData, setFormData] = useState({
         email: '',
         password: '',
@@ -46,10 +48,9 @@ const LoginPage: React.FC = () => {
                 // POST /api/auth/google-login
                 // Body: { idToken: result.idToken, user: result.user }
 
-                // For now, redirect to dashboard
-                // In production, wait for backend response to determine role
-                alert(`Welcome ${result.user.displayName}!`);
-                // navigate('/dashboard');
+                // For now, just navigate to home
+                // The AuthContext will automatically update via onAuthStateChange
+                navigate('/');
             } else {
                 setError(result.error || 'Google sign-in failed');
             }

@@ -1,9 +1,13 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
+import { signOutUser } from '../config/firebase';
 
 const Navigation: React.FC = () => {
     const [isOpen, setIsOpen] = useState(false);
+    const [showProfileMenu, setShowProfileMenu] = useState(false);
     const location = useLocation();
+    const { user } = useAuth();
 
     const isActive = (path: string) => location.pathname === path;
 
@@ -14,6 +18,12 @@ const Navigation: React.FC = () => {
         { path: '/about', label: 'About' },
         { path: '/contact', label: 'Contact' },
     ];
+
+    const handleSignOut = async () => {
+        await signOutUser();
+        setShowProfileMenu(false);
+        window.location.href = '/';
+    };
 
     return (
         <nav className="fixed top-0 left-0 right-0 z-50 bg-slate-900/80 backdrop-blur-xl border-b border-white/10">
@@ -42,19 +52,91 @@ const Navigation: React.FC = () => {
                                 {link.label}
                             </Link>
                         ))}
-                        <Link
-                            to="/create"
-                            className="ml-4 px-6 py-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-lg font-semibold transition-all hover:scale-105 shadow-lg"
-                        >
-                            Create Chatbot
-                        </Link>
 
-                        <Link
-                            to="/login"
-                            className="ml-4 px-5 py-2 text-white hover:bg-white/10 rounded-lg font-medium transition-all"
-                        >
-                            Login
-                        </Link>
+                        {user ? (
+                            // Show user profile when logged in
+                            <>
+                                <Link
+                                    to="/create"
+                                    className="ml-4 px-6 py-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-lg font-semibold transition-all hover:scale-105 shadow-lg"
+                                >
+                                    Create Chatbot
+                                </Link>
+
+                                <div className="relative ml-2">
+                                    <button
+                                        onClick={() => setShowProfileMenu(!showProfileMenu)}
+                                        className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-white/10 transition-colors"
+                                    >
+                                        <img
+                                            src={user.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.displayName || user.email || 'User')}&background=6366f1&color=fff`}
+                                            alt={user.displayName || 'User'}
+                                            className="w-8 h-8 rounded-full border-2 border-purple-400"
+                                        />
+                                        <span className="text-white font-medium hidden lg:block">
+                                            {user.displayName || user.email?.split('@')[0]}
+                                        </span>
+                                        <svg className="w-4 h-4 text-purple-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                        </svg>
+                                    </button>
+
+                                    {/* Dropdown Menu */}
+                                    {showProfileMenu && (
+                                        <div className="absolute right-0 mt-2 w-48 bg-slate-800 rounded-lg shadow-xl border border-white/10 py-2">
+                                            <div className="px-4 py-2 border-b border-white/10">
+                                                <p className="text-sm font-medium text-white">{user.displayName || 'User'}</p>
+                                                <p className="text-xs text-purple-300">{user.email}</p>
+                                            </div>
+                                            <Link
+                                                to="/dashboard"
+                                                className="block px-4 py-2 text-sm text-purple-200 hover:bg-white/10 hover:text-white transition-colors"
+                                                onClick={() => setShowProfileMenu(false)}
+                                            >
+                                                📊 Dashboard
+                                            </Link>
+                                            <Link
+                                                to="/my-chatbots"
+                                                className="block px-4 py-2 text-sm text-purple-200 hover:bg-white/10 hover:text-white transition-colors"
+                                                onClick={() => setShowProfileMenu(false)}
+                                            >
+                                                🤖 My Chatbots
+                                            </Link>
+                                            <Link
+                                                to="/settings"
+                                                className="block px-4 py-2 text-sm text-purple-200 hover:bg-white/10 hover:text-white transition-colors"
+                                                onClick={() => setShowProfileMenu(false)}
+                                            >
+                                                ⚙️ Settings
+                                            </Link>
+                                            <hr className="my-2 border-white/10" />
+                                            <button
+                                                onClick={handleSignOut}
+                                                className="w-full text-left px-4 py-2 text-sm text-red-300 hover:bg-white/10 hover:text-red-200 transition-colors"
+                                            >
+                                                🚪 Sign Out
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
+                            </>
+                        ) : (
+                            // Show login/signup buttons when not logged in
+                            <>
+                                <Link
+                                    to="/login"
+                                    className="ml-4 px-5 py-2 text-white hover:bg-white/10 rounded-lg font-medium transition-all"
+                                >
+                                    Login
+                                </Link>
+                                <Link
+                                    to="/signup"
+                                    className="px-6 py-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-lg font-semibold transition-all hover:scale-105 shadow-lg"
+                                >
+                                    Sign Up
+                                </Link>
+                            </>
+                        )}
                     </div>
 
                     {/* Mobile Menu Button */}
@@ -77,6 +159,20 @@ const Navigation: React.FC = () => {
             {isOpen && (
                 <div className="md:hidden bg-slate-900/95 backdrop-blur-xl border-t border-white/10">
                     <div className="px-4 py-4 space-y-2">
+                        {user && (
+                            <div className="flex items-center gap-3 px-4 py-3 bg-white/5 rounded-lg mb-4">
+                                <img
+                                    src={user.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.displayName || user.email || 'User')}&background=6366f1&color=fff`}
+                                    alt={user.displayName || 'User'}
+                                    className="w-10 h-10 rounded-full border-2 border-purple-400"
+                                />
+                                <div>
+                                    <p className="text-white font-medium">{user.displayName || 'User'}</p>
+                                    <p className="text-xs text-purple-300">{user.email}</p>
+                                </div>
+                            </div>
+                        )}
+
                         {navLinks.map((link) => (
                             <Link
                                 key={link.path}
@@ -90,13 +186,65 @@ const Navigation: React.FC = () => {
                                 {link.label}
                             </Link>
                         ))}
-                        <Link
-                            to="/create"
-                            onClick={() => setIsOpen(false)}
-                            className="block px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg font-semibold text-center"
-                        >
-                            Create Chatbot
-                        </Link>
+
+                        {user ? (
+                            <>
+                                <Link
+                                    to="/create"
+                                    onClick={() => setIsOpen(false)}
+                                    className="block px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg font-semibold text-center"
+                                >
+                                    Create Chatbot
+                                </Link>
+                                <Link
+                                    to="/dashboard"
+                                    onClick={() => setIsOpen(false)}
+                                    className="block px-4 py-2 text-purple-200 hover:bg-white/10 rounded-lg"
+                                >
+                                    📊 Dashboard
+                                </Link>
+                                <Link
+                                    to="/my-chatbots"
+                                    onClick={() => setIsOpen(false)}
+                                    className="block px-4 py-2 text-purple-200 hover:bg-white/10 rounded-lg"
+                                >
+                                    🤖 My Chatbots
+                                </Link>
+                                <Link
+                                    to="/settings"
+                                    onClick={() => setIsOpen(false)}
+                                    className="block px-4 py-2 text-purple-200 hover:bg-white/10 rounded-lg"
+                                >
+                                    ⚙️ Settings
+                                </Link>
+                                <button
+                                    onClick={() => {
+                                        setIsOpen(false);
+                                        handleSignOut();
+                                    }}
+                                    className="w-full text-left px-4 py-2 text-red-300 hover:bg-white/10 rounded-lg"
+                                >
+                                    🚪 Sign Out
+                                </button>
+                            </>
+                        ) : (
+                            <>
+                                <Link
+                                    to="/login"
+                                    onClick={() => setIsOpen(false)}
+                                    className="block px-4 py-2 text-white hover:bg-white/10 rounded-lg font-medium text-center"
+                                >
+                                    Login
+                                </Link>
+                                <Link
+                                    to="/signup"
+                                    onClick={() => setIsOpen(false)}
+                                    className="block px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg font-semibold text-center"
+                                >
+                                    Sign Up
+                                </Link>
+                            </>
+                        )}
                     </div>
                 </div>
             )}
