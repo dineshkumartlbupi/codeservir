@@ -19,6 +19,9 @@
 
   // Create widget HTML
   function createWidget() {
+    // Singleton check: Prevent multiple instances
+    if (document.getElementById('codeservir-widget')) return;
+
     const widgetContainer = document.createElement('div');
     widgetContainer.id = 'codeservir-widget';
     widgetContainer.innerHTML = `
@@ -409,7 +412,7 @@
                 </button>
             </div>
             <div id="codeservir-powered">
-                Powered by <a href="#" target="_blank">CodeServir</a>
+                Powered by <a href="https://www.codeservir.com/" target="_blank">CodeServir</a>
             </div>
         </div>
       </div>
