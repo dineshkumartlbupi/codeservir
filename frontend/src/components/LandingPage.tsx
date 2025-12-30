@@ -53,7 +53,11 @@ const LandingPage: React.FC = () => {
         setError('');
 
         try {
-            const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001';
+            // Use production URL as fallback
+            const API_URL = process.env.REACT_APP_API_URL || 'https://codeservir-api.vercel.app';
+
+            console.log('Sending request to:', API_URL);
+
             const response = await fetch(`${API_URL}/api/chatbot/create`, {
                 method: 'POST',
                 headers: {
