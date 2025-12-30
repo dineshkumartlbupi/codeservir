@@ -9,22 +9,26 @@ export class DashboardController {
      */
     async getStats(req: Request, res: Response): Promise<void> {
         try {
-            // Ideally get email from auth token
-            // For now, expect email in query or body (or separate logic for authenticated user)
-            // If calling from frontend DashboardPage, it might pass email or just expect stats for "user"
-            // The DashboardPage.tsx uses /api/dashboard/stats with GET.
-            // It sends Authorization header.
+            // MOCK: Decode token manually since we don't have full auth middleware set up yet
+            // This is "insecure" signature-wise but sufficient for passing context in this prototype phase
 
-            // MOCK: we need to decode token to get email.
-            // Since we skipped auth middleware implementation details, we will just return 
-            // empty or mock data if we can't identify user.
-            // BUT, for the prompt's sake, let's assume we can get email from a header 'X-User-Email' 
-            // OR we just return global stats if no user? No, dashboard is user specific.
+            let email = req.query.email as string;
 
-            // Let's check if there is an email in query string as a fallback for now?
-            // checking req.query.email
-
-            const email = req.query.email as string;
+            const authHeader = req.headers.authorization;
+            if (!email && authHeader && authHeader.startsWith('Bearer ')) {
+                try {
+                    const token = authHeader.split(' ')[1];
+                    const base64Url = token.split('.')[1];
+                    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+                    const jsonPayload = Buffer.from(base64, 'base64').toString('utf-8');
+                    const decoded = JSON.parse(jsonPayload);
+                    if (decoded.email) {
+                        email = decoded.email;
+                    }
+                } catch (e) {
+                    console.warn('Failed to decode token manually:', e);
+                }
+            }
 
             if (!email) {
                 // Return generic stats or error

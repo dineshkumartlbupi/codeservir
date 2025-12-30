@@ -22,7 +22,7 @@ const DashboardPage: React.FC = () => {
         try {
             setLoading(true);
             const token = await user?.getIdToken();
-            const data = await api.getDashboardStats(token) as DashboardStats;
+            const data = await api.getDashboardStats(token, user?.email || undefined) as DashboardStats;
             setStats(data);
         } catch (err: any) {
             console.error('Failed to fetch dashboard data:', err);

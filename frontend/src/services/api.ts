@@ -176,7 +176,7 @@ export const api = {
     },
 
     // Get dashboard stats
-    async getDashboardStats(token?: string): Promise<DashboardStats> {
+    async getDashboardStats(token?: string, email?: string): Promise<DashboardStats> {
         try {
             const headers: any = {
                 'Content-Type': 'application/json',
@@ -185,7 +185,12 @@ export const api = {
                 headers['Authorization'] = `Bearer ${token}`;
             }
 
-            const response = await fetch(`${API_URL}/api/dashboard/stats`, {
+            let url = `${API_URL}/api/dashboard/stats`;
+            if (email) {
+                url += `?email=${encodeURIComponent(email)}`;
+            }
+
+            const response = await fetch(url, {
                 method: 'GET',
                 headers,
             });
