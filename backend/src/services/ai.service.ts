@@ -171,7 +171,7 @@ export class AIService {
         chatHistory: ChatMessage[] = []
     ): Promise<string> {
         try {
-            // 1. Check for greeting (Basic exact match)
+            //1. Check for greeting (Basic exact match)
             const greetings = ['hi', 'hello', 'hey', 'greetings', 'good morning'];
             if (greetings.includes(userMessage.toLowerCase().replace(/[^\w\s]/g, '').trim())) {
                 return `Hello! How can I assist you with ${context.businessName} today?`;

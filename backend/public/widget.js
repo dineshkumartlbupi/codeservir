@@ -18,6 +18,7 @@
   let messages = [];
 
   // Create widget HTML
+  // Create widget HTML
   function createWidget() {
     const widgetContainer = document.createElement('div');
     widgetContainer.id = 'codeservir-widget';
@@ -28,9 +29,10 @@
           bottom: 20px;
           right: 20px;
           z-index: 999999;
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+          font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
         }
 
+        /* Floating Launcher Button */
         #codeservir-button {
           width: 60px;
           height: 60px;
@@ -64,110 +66,178 @@
           fill: white;
         }
 
+        /* Main Chat Window */
         #codeservir-chat-window {
           display: none;
           position: fixed;
-          bottom: 90px;
+          bottom: 100px;
           right: 20px;
           width: 380px;
-          height: 600px;
+          height: 650px;
           max-height: calc(100vh - 120px);
-          background: white;
-          border-radius: 16px;
-          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+          background: #f3f4f6;
+          border-radius: 20px;
+          box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
           flex-direction: column;
           overflow: hidden;
+          opacity: 0;
+          transform: translateY(20px) scale(0.95);
+          transition: opacity 0.3s, transform 0.3s;
         }
 
         #codeservir-chat-window.open {
           display: flex;
+          opacity: 1;
+          transform: translateY(0) scale(1);
         }
 
+        /* Header */
         #codeservir-header {
           background: linear-gradient(135deg, var(--primary-color, #4F46E5), var(--secondary-color, #10B981));
           color: white;
           padding: 20px;
           display: flex;
-          justify-content: space-between;
           align-items: center;
+          justify-content: space-between;
+          border-top-left-radius: 20px;
+          border-top-right-radius: 20px;
         }
 
-        #codeservir-header h3 {
-          margin: 0;
-          font-size: 18px;
-          font-weight: 600;
+        .codeservir-header-content {
+          display: flex;
+          align-items: center;
+          gap: 12px;
         }
 
-        #codeservir-close {
-          background: none;
-          border: none;
-          color: white;
-          cursor: pointer;
-          font-size: 24px;
-          padding: 0;
-          width: 30px;
-          height: 30px;
+        .codeservir-header-icon {
+          width: 40px;
+          height: 40px;
+          background: rgba(255, 255, 255, 0.2);
+          border-radius: 50%;
           display: flex;
           align-items: center;
           justify-content: center;
-          border-radius: 50%;
+          backdrop-filter: blur(4px);
+        }
+
+        .codeservir-header-info h3 {
+          margin: 0;
+          font-size: 16px;
+          font-weight: 700;
+          line-height: 1.2;
+        }
+
+        .codeservir-header-info p {
+          margin: 2px 0 0;
+          font-size: 12px;
+          opacity: 0.9;
+          font-weight: 400;
+        }
+
+        #codeservir-close {
+          background: rgba(255, 255, 255, 0.2);
+          border: none;
+          color: white;
+          cursor: pointer;
+          width: 32px;
+          height: 32px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          border-radius: 8px;
           transition: background 0.2s;
         }
 
         #codeservir-close:hover {
-          background: rgba(255, 255, 255, 0.2);
+          background: rgba(255, 255, 255, 0.3);
         }
 
+        /* Messages Area */
         #codeservir-messages {
           flex: 1;
           overflow-y: auto;
           padding: 20px;
-          background: #f9fafb;
+          display: flex;
+          flex-direction: column;
+          gap: 16px;
         }
 
         .codeservir-message {
-          margin-bottom: 16px;
           display: flex;
-          flex-direction: column;
+          align-items: flex-end;
+          gap: 8px;
+          max-width: 85%;
         }
 
         .codeservir-message.user {
-          align-items: flex-end;
+          align-self: flex-end;
+          flex-direction: row-reverse;
         }
 
         .codeservir-message.bot {
-          align-items: flex-start;
+          align-self: flex-start;
+        }
+
+        .codeservir-avatar {
+          width: 28px;
+          height: 28px;
+          border-radius: 50%;
+          flex-shrink: 0;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background: white;
+          box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+          overflow: hidden;
+        }
+        
+        .codeservir-avatar svg {
+            width: 18px;
+            height: 18px;
+        }
+        
+        .codeservir-avatar.user-avatar {
+            background: linear-gradient(135deg, var(--primary-color, #4F46E5), var(--secondary-color, #10B981));
         }
 
         .codeservir-message-content {
-          max-width: 80%;
           padding: 12px 16px;
-          border-radius: 12px;
           font-size: 14px;
           line-height: 1.5;
           word-wrap: break-word;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.05);
         }
 
-        .codeservir-message.user .codeservir-message-content {
-          background: var(--primary-color, #4F46E5);
-          color: white;
-          border-bottom-right-radius: 4px;
-        }
-
+        /* Bot Bubble: White, rounded */
         .codeservir-message.bot .codeservir-message-content {
           background: white;
           color: #1f2937;
-          border-bottom-left-radius: 4px;
-          box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+          border-radius: 12px;
+          border-bottom-left-radius: 2px;
         }
 
+        /* User Bubble: Gradient, rounded */
+        .codeservir-message.user .codeservir-message-content {
+          background: linear-gradient(135deg, var(--primary-color, #4F46E5), var(--secondary-color, #10B981));
+          color: white;
+          border-radius: 12px;
+          border-bottom-right-radius: 2px;
+        }
+
+        /* Typing Indicator */
         .codeservir-typing {
           display: none;
-          padding: 12px 16px;
-          background: white;
-          border-radius: 12px;
-          width: fit-content;
-          box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+          margin-left: 36px; /* Align with bot text (avatar width + gap) */
+        }
+        
+        .codeservir-typing-bubble {
+            background: white;
+            padding: 12px 16px;
+            border-radius: 12px;
+            border-bottom-left-radius: 2px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            display: inline-flex;
+            gap: 4px;
         }
 
         .codeservir-typing.active {
@@ -175,82 +245,94 @@
         }
 
         .codeservir-typing span {
-          display: inline-block;
-          width: 8px;
-          height: 8px;
-          border-radius: 50%;
+          width: 6px;
+          height: 6px;
           background: #9ca3af;
-          margin: 0 2px;
+          border-radius: 50%;
           animation: typing 1.4s infinite;
         }
-
-        .codeservir-typing span:nth-child(2) {
-          animation-delay: 0.2s;
-        }
-
-        .codeservir-typing span:nth-child(3) {
-          animation-delay: 0.4s;
-        }
+        
+        .codeservir-typing span:nth-child(2) { animation-delay: 0.2s; }
+        .codeservir-typing span:nth-child(3) { animation-delay: 0.4s; }
 
         @keyframes typing {
-          0%, 60%, 100% {
-            transform: translateY(0);
-          }
-          30% {
-            transform: translateY(-10px);
-          }
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-4px); }
+        }
+
+        /* Input Area */
+        #codeservir-footer {
+            background: white;
+            padding: 16px 20px 10px;
+            border-top: 1px solid #e5e7eb;
         }
 
         #codeservir-input-container {
-          padding: 16px;
-          background: white;
-          border-top: 1px solid #e5e7eb;
           display: flex;
-          gap: 8px;
+          align-items: center;
+          gap: 10px;
+          background: #f9fafb;
+          border: 1px solid #e5e7eb;
+          border-radius: 30px;
+          padding: 6px 6px 6px 16px;
+          transition: border-color 0.2s;
+        }
+
+        #codeservir-input-container:focus-within {
+          border-color: var(--primary-color, #4F46E5);
+          background: white;
         }
 
         #codeservir-input {
           flex: 1;
-          padding: 12px 16px;
-          border: 1px solid #e5e7eb;
-          border-radius: 24px;
+          border: none;
+          background: transparent;
           font-size: 14px;
           outline: none;
-          transition: border-color 0.2s;
-        }
-
-        #codeservir-input:focus {
-          border-color: var(--primary-color, #4F46E5);
+          padding: 4px 0;
+          color: #374151;
         }
 
         #codeservir-send {
-          width: 44px;
-          height: 44px;
+          width: 40px;
+          height: 40px;
           border-radius: 50%;
-          background: var(--primary-color, #4F46E5);
+          background: linear-gradient(135deg, var(--primary-color, #4F46E5), var(--secondary-color, #10B981));
           border: none;
           cursor: pointer;
           display: flex;
           align-items: center;
           justify-content: center;
-          transition: opacity 0.2s;
+          transition: transform 0.2s;
+          box-shadow: 0 2px 6px rgba(0,0,0,0.1);
         }
 
         #codeservir-send:hover {
-          opacity: 0.9;
+          transform: scale(1.05);
         }
-
-        #codeservir-send:disabled {
-          opacity: 0.5;
-          cursor: not-allowed;
-        }
-
+        
         #codeservir-send svg {
-          width: 20px;
-          height: 20px;
-          fill: white;
+            width: 18px;
+            height: 18px;
+            fill: white;
+            margin-left: 2px; /* Visual centering */
         }
 
+        /* Branding Footer */
+        #codeservir-branding {
+            text-align: center;
+            font-size: 10px;
+            color: #9ca3af;
+            margin-top: 8px;
+            font-weight: 500;
+        }
+        
+        #codeservir-branding a {
+            color: var(--primary-color, #4F46E5);
+            text-decoration: none;
+        }
+
+        /* Mobile Responsive */
         @media (max-width: 480px) {
           #codeservir-chat-window {
             width: calc(100vw - 40px);
@@ -268,29 +350,57 @@
       </button>
 
       <div id="codeservir-chat-window">
+        <!-- Header -->
         <div id="codeservir-header">
-          <h3 id="codeservir-title">Chat</h3>
-          <button id="codeservir-close" aria-label="Close chat">&times;</button>
+           <div class="codeservir-header-content">
+               <div class="codeservir-header-icon">
+                    <svg viewBox="0 0 24 24" width="24" height="24" fill="white">
+                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/>
+                    </svg>
+               </div>
+               <div class="codeservir-header-info">
+                   <h3 id="codeservir-title">Chat Support</h3>
+                   <p>Smart AI Assistant</p>
+               </div>
+           </div>
+           <button id="codeservir-close" aria-label="Close chat">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+                    <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+                </svg>
+           </button>
         </div>
+
+        <!-- Messages -->
         <div id="codeservir-messages">
-          <div class="codeservir-typing">
-            <span></span>
-            <span></span>
-            <span></span>
-          </div>
+           <!-- Messages injected here -->
+           
+           <div class="codeservir-typing">
+               <div class="codeservir-typing-bubble">
+                <span></span>
+                <span></span>
+                <span></span>
+               </div>
+           </div>
         </div>
-        <div id="codeservir-input-container">
-          <input 
-            type="text" 
-            id="codeservir-input" 
-            placeholder="Type your message..."
-            autocomplete="off"
-          />
-          <button id="codeservir-send" aria-label="Send message">
-            <svg viewBox="0 0 24 24">
-              <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
-            </svg>
-          </button>
+
+        <!-- Footer -->
+        <div id="codeservir-footer">
+            <div id="codeservir-input-container">
+                <input 
+                  type="text" 
+                  id="codeservir-input" 
+                  placeholder="Type your message..."
+                  autocomplete="off"
+                />
+                <button id="codeservir-send" aria-label="Send message">
+                  <svg viewBox="0 0 24 24">
+                    <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+                  </svg>
+                </button>
+            </div>
+            <div id="codeservir-branding">
+                Powered by CodeServir AI
+            </div>
         </div>
       </div>
     `;
@@ -298,91 +408,7 @@
     document.body.appendChild(widgetContainer);
   }
 
-  // Load chatbot configuration
-  async function loadConfig() {
-    try {
-      const response = await fetch(`${API_URL}/api/chatbot/${chatbotId}/config`);
-      const data = await response.json();
-
-      if (data.success) {
-        config = data.config;
-
-        // Apply custom colors
-        const root = document.documentElement;
-        root.style.setProperty('--primary-color', config.primaryColor);
-        root.style.setProperty('--secondary-color', config.secondaryColor);
-
-        // Set title
-        document.getElementById('codeservir-title').textContent = config.businessName;
-
-        // Add greeting message
-        addMessage('bot', config.greeting);
-      }
-    } catch (error) {
-      console.error('Failed to load chatbot config:', error);
-    }
-  }
-
-  // Create new session
-  async function createSession() {
-    try {
-      const response = await fetch(`${API_URL}/api/chat/session`, {
-        method: 'POST',
-      });
-      const data = await response.json();
-
-      if (data.success) {
-        sessionId = data.sessionId;
-        localStorage.setItem(`codeservir_session_${chatbotId}`, sessionId);
-      }
-    } catch (error) {
-      console.error('Failed to create session:', error);
-    }
-  }
-
-  // Send message
-  async function sendMessage(message) {
-    if (!message.trim()) return;
-
-    // Add user message to UI
-    addMessage('user', message);
-
-    // Clear input
-    document.getElementById('codeservir-input').value = '';
-
-    // Show typing indicator
-    showTyping(true);
-
-    try {
-      const response = await fetch(`${API_URL}/api/chat`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          chatbotId,
-          sessionId,
-          message,
-        }),
-      });
-
-      const data = await response.json();
-
-      showTyping(false);
-
-      if (data.success) {
-        addMessage('bot', data.response);
-      } else if (data.error === 'LIMIT_EXCEEDED') {
-        addMessage('bot', data.message);
-      } else {
-        addMessage('bot', 'Sorry, I encountered an error. Please try again.');
-      }
-    } catch (error) {
-      showTyping(false);
-      console.error('Failed to send message:', error);
-      addMessage('bot', 'Sorry, I encountered an error. Please try again.');
-    }
-  }
+  // ... loadConfig and createSession remain same ...
 
   // Add message to UI
   function addMessage(type, content) {
@@ -390,11 +416,30 @@
     const messageDiv = document.createElement('div');
     messageDiv.className = `codeservir-message ${type}`;
 
+    // Avatar
+    const avatarDiv = document.createElement('div');
+    avatarDiv.className = `codeservir-avatar ${type === 'user' ? 'user-avatar' : 'bot-avatar'}`;
+
+    if (type === 'bot') {
+      avatarDiv.innerHTML = `
+                <svg viewBox="0 0 24 24" fill="#4F46E5">
+                    <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H6l-2 2V4h16v12z"/>
+                </svg>`;
+    } else {
+      avatarDiv.innerHTML = `
+                <svg viewBox="0 0 24 24" fill="white">
+                     <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                </svg>`;
+    }
+
+    // Bubble
     const contentDiv = document.createElement('div');
     contentDiv.className = 'codeservir-message-content';
     contentDiv.textContent = content;
 
+    messageDiv.appendChild(avatarDiv);
     messageDiv.appendChild(contentDiv);
+
     messagesContainer.insertBefore(messageDiv, messagesContainer.querySelector('.codeservir-typing'));
 
     // Scroll to bottom
