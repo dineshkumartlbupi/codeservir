@@ -1,0 +1,154 @@
+CodeServir Chatbot Details
+==========================
+Created: 2025-12-31 02:21 IST
+
+✅ CHATBOT CREATED SUCCESSFULLY!
+
+Chatbot ID: cb_80bd3a6f3e684f3e
+
+Business Details:
+-----------------
+Business Name: CodeServir
+Owner: Dinesh Kumar
+Website: https://codeservir.com
+Email: support@codeservir.com
+Phone: +91 9519202809
+Address: 4/37, 2nd Floor, Vibhav khad, Gomtinagar, Uttar Pradesh, India
+
+Embed Code:
+-----------
+<script>
+(function () {
+  var s = document.createElement("script");
+  s.src = "https://codeservir-api.vercel.app/widget.js";
+  s.async = true;
+  s.setAttribute("data-chatbot-id", "cb_80bd3a6f3e684f3e");
+  (document.head || document.documentElement).appendChild(s);
+})();
+</script>
+
+Mobile App URL:
+---------------
+https://codeservir-api.vercel.app/embed/cb_80bd3a6f3e684f3e
+
+Training Endpoint:
+------------------
+POST https://codeservir-api.vercel.app/api/chatbot/cb_80bd3a6f3e684f3e/train
+
+How to Add to Your Website:
+----------------------------
+
+Option 1: Add to index.html (Recommended)
+==========================================
+File: /Users/dineshkumar/Documents/codeservir/frontend/public/index.html
+
+Add this code before the closing </body> tag:
+
+<script>
+(function () {
+  var s = document.createElement("script");
+  s.src = "https://codeservir-api.vercel.app/widget.js";
+  s.async = true;
+  s.setAttribute("data-chatbot-id", "cb_80bd3a6f3e684f3e");
+  (document.head || document.documentElement).appendChild(s);
+})();
+</script>
+
+
+Option 2: Use React Component
+==============================
+File: /Users/dineshkumar/Documents/codeservir/frontend/src/App.tsx
+
+1. Import the component:
+   import ChatbotWidget from './components/ChatbotWidget';
+
+2. Add to your App:
+   <ChatbotWidget chatbotId="cb_80bd3a6f3e684f3e" />
+
+
+Training Your Chatbot:
+======================
+Use this curl command to train with CodeServir Q&A:
+
+curl -X POST https://codeservir-api.vercel.app/api/chatbot/cb_80bd3a6f3e684f3e/train \
+  -H "Content-Type: application/json" \
+  -d '{
+    "trainingData": [
+      {
+        "question": "What is CodeServir?",
+        "answer": "CodeServir is an AI-powered chatbot platform that helps businesses create intelligent chatbots for their websites in minutes. No coding required!"
+      },
+      {
+        "question": "How much does it cost?",
+        "answer": "We offer three plans: Starter (Free forever), Professional ($29/month), and Enterprise (custom pricing). The free plan includes 1 chatbot and 100 conversations per month."
+      },
+      {
+        "question": "How do I create a chatbot?",
+        "answer": "Simply go to our Create Chatbot page, fill in your business details, customize the colors, and click create. You will get an embed code instantly that you can add to your website."
+      },
+      {
+        "question": "Do I need coding skills?",
+        "answer": "No! CodeServir is designed for everyone. Just fill out a simple form, and we will generate everything you need. Copy and paste the embed code into your website."
+      },
+      {
+        "question": "Can I customize the chatbot?",
+        "answer": "Yes! You can customize colors to match your brand, train it with custom Q&A pairs, and configure its behavior. Professional and Enterprise plans offer even more customization options."
+      },
+      {
+        "question": "How does the AI work?",
+        "answer": "Our chatbot uses advanced AI to understand context and provide intelligent responses. It learns from your website content and the custom training data you provide."
+      },
+      {
+        "question": "Is it mobile-friendly?",
+        "answer": "Absolutely! All CodeServir chatbots are fully responsive and work perfectly on desktop, tablet, and mobile devices. We also support mobile app integration via WebView."
+      },
+      {
+        "question": "How do I integrate it into my website?",
+        "answer": "After creating your chatbot, you will receive a simple JavaScript code snippet. Just paste it before the closing </body> tag in your website HTML. It takes less than 2 minutes!"
+      },
+      {
+        "question": "Can I train the chatbot?",
+        "answer": "Yes! You can add custom Q&A pairs through our training interface. This helps your chatbot answer specific questions about your business accurately."
+      },
+      {
+        "question": "What support do you offer?",
+        "answer": "We offer email support for all plans, priority support for Professional plans, and dedicated support for Enterprise customers. You can reach us at support@codeservir.com or call +91 9519202809."
+      }
+    ]
+  }'
+
+
+Next Steps:
+-----------
+1. ✅ Chatbot created (ID: cb_80bd3a6f3e684f3e)
+2. ⏳ Add embed code to your website
+3. ⏳ Train your chatbot (optional but recommended)
+4. ⏳ Test on localhost:3000
+5. ⏳ Deploy to production
+
+Quick Integration:
+------------------
+Run this command to add the chatbot to your website automatically:
+
+# This will add the script to index.html
+echo '<script>
+(function () {
+  var s = document.createElement("script");
+  s.src = "https://codeservir-api.vercel.app/widget.js";
+  s.async = true;
+  s.setAttribute("data-chatbot-id", "cb_80bd3a6f3e684f3e");
+  (document.head || document.documentElement).appendChild(s);
+})();
+</script>' >> frontend/public/index.html
+
+Or manually add it before </body> tag in:
+/Users/dineshkumar/Documents/codeservir/frontend/public/index.html
+
+
+Support:
+--------
+Email: support@codeservir.com
+Phone: +91 9519202809
+Docs: https://codeservir.com/docs
+
+🎉 Your CodeServir chatbot is ready to use!

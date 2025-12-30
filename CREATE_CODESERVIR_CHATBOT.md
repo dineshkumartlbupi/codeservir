@@ -20,8 +20,8 @@ Owner Name: Dinesh Kumar
 Business Name: CodeServir
 Website URL: https://codeservir.com
 Contact Email: support@codeservir.com
-Contact Number: +1 (555) 123-4567
-Business Address: Your business address
+Contact Number: +91 9519202809
+Business Address: 4/37, 2nd Floor, Vibhav khad, Gomtinagar, Uttar Pradesh, India
 Business Description: CodeServir is an AI-powered chatbot platform that helps businesses create intelligent chatbots for their websites in minutes. No coding required. Features include instant setup, full customization, AI-powered responses, mobile responsiveness, easy training, and 24/7 customer support.
 Primary Color: #6366f1 (purple)
 Secondary Color: #8b5cf6 (pink)
