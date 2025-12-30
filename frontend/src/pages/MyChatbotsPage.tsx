@@ -1,63 +1,94 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-
-interface Chatbot {
-    id: string;
-    name: string;
-    description: string;
-    website: string;
-    status: 'active' | 'inactive';
-    conversations: number;
-    lastActive: string;
-    color: string;
-}
+import { api, Chatbot } from '../services/api';
 
 const MyChatbotsPage: React.FC = () => {
     const { user } = useAuth();
-    const [chatbots, setChatbots] = useState<Chatbot[]>([
-        {
-            id: '1',
-            name: 'Support Bot',
-            description: 'Customer support chatbot for main website',
-            website: 'example.com',
-            status: 'active',
-            conversations: 1234,
-            lastActive: '2 min ago',
-            color: 'from-purple-600 to-pink-600'
-        },
-        {
-            id: '2',
-            name: 'Sales Bot',
-            description: 'Lead generation and sales assistant',
-            website: 'shop.example.com',
-            status: 'active',
-            conversations: 567,
-            lastActive: '1 hour ago',
-            color: 'from-blue-600 to-cyan-600'
-        },
-        {
-            id: '3',
-            name: 'FAQ Bot',
-            description: 'Answers frequently asked questions',
-            website: 'help.example.com',
-            status: 'inactive',
-            conversations: 89,
-            lastActive: '3 days ago',
-            color: 'from-green-600 to-emerald-600'
-        },
-    ]);
+    const [chatbots, setChatbots] = useState<Chatbot[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState('');
 
-    const handleDelete = (id: string) => {
-        if (window.confirm('Are you sure you want to delete this chatbot?')) {
-            setChatbots(chatbots.filter(bot => bot.id !== id));
+    useEffect(() => {
+        fetchChatbots();
+    }, []);
+
+    const fetchChatbots = async () => {
+        try {
+            setLoading(true);
+            const token = await user?.getIdToken();
+            const data = await api.getChatbots(token) as { chatbots: Chatbot[] };
+            setChatbots(data.chatbots || []);
+        } catch (err: any) {
+            console.error('Failed to fetch chatbots:', err);
+            setError(err.message);
+            // Use mock data as fallback
+            setChatbots([
+                {
+                    id: '1',
+                    name: 'Support Bot',
+                    description: 'Customer support chatbot for main website',
+                    website: 'example.com',
+                    status: 'active',
+                    conversations: 1234,
+                    lastActive: '2 min ago',
+                    createdAt: new Date().toISOString()
+                },
+                {
+                    id: '2',
+                    name: 'Sales Bot',
+                    description: 'Lead generation and sales assistant',
+                    website: 'shop.example.com',
+                    status: 'active',
+                    conversations: 567,
+                    lastActive: '1 hour ago',
+                    createdAt: new Date().toISOString()
+                },
+            ]);
+        } finally {
+            setLoading(false);
         }
     };
 
-    const toggleStatus = (id: string) => {
-        setChatbots(chatbots.map(bot =>
-            bot.id === id ? { ...bot, status: bot.status === 'active' ? 'inactive' : 'active' } : bot
-        ));
+    const handleDelete = async (id: string) => {
+        if (window.confirm('Are you sure you want to delete this chatbot?')) {
+            try {
+                const token = await user?.getIdToken();
+                await api.deleteChatbot(id, token);
+                setChatbots(chatbots.filter(bot => bot.id !== id));
+            } catch (err: any) {
+                alert('Failed to delete chatbot: ' + err.message);
+            }
+        }
+    };
+
+    const toggleStatus = async (id: string) => {
+        const chatbot = chatbots.find(bot => bot.id === id);
+        if (!chatbot) return;
+
+        const newStatus = chatbot.status === 'active' ? 'inactive' : 'active';
+
+        try {
+            const token = await user?.getIdToken();
+            await api.updateChatbot(id, { status: newStatus }, token);
+            setChatbots(chatbots.map(bot =>
+                bot.id === id ? { ...bot, status: newStatus } : bot
+            ));
+        } catch (err: any) {
+            alert('Failed to update status: ' + err.message);
+        }
+    };
+
+    const getColorForIndex = (index: number) => {
+        const colors = [
+            'from-purple-600 to-pink-600',
+            'from-blue-600 to-cyan-600',
+            'from-green-600 to-emerald-600',
+            'from-orange-600 to-yellow-600',
+            'from-red-600 to-rose-600',
+            'from-indigo-600 to-purple-600',
+        ];
+        return colors[index % colors.length];
     };
 
     return (
@@ -99,12 +130,12 @@ const MyChatbotsPage: React.FC = () => {
 
                 {/* Chatbots Grid */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    {chatbots.map((chatbot) => (
+                    {chatbots.map((chatbot, index) => (
                         <div key={chatbot.id} className="bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-white/20 hover:bg-white/15 transition-all">
                             {/* Header */}
                             <div className="flex items-start justify-between mb-4">
                                 <div className="flex items-center gap-3">
-                                    <div className={`w-12 h-12 rounded-xl bg-gradient-to-r ${chatbot.color} flex items-center justify-center text-2xl`}>
+                                    <div className={`w-12 h-12 rounded-xl bg-gradient-to-r ${getColorForIndex(index)} flex items-center justify-center text-2xl`}>
                                         🤖
                                     </div>
                                     <div>
@@ -113,8 +144,8 @@ const MyChatbotsPage: React.FC = () => {
                                     </div>
                                 </div>
                                 <span className={`px-3 py-1 rounded-full text-xs font-semibold ${chatbot.status === 'active'
-                                        ? 'bg-green-500/20 text-green-300'
-                                        : 'bg-gray-500/20 text-gray-300'
+                                    ? 'bg-green-500/20 text-green-300'
+                                    : 'bg-gray-500/20 text-gray-300'
                                     }`}>
                                     {chatbot.status === 'active' ? '● Active' : '○ Inactive'}
                                 </span>

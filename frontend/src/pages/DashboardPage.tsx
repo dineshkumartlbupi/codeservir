@@ -1,15 +1,49 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { api, DashboardStats } from '../services/api';
 
 const DashboardPage: React.FC = () => {
     const { user } = useAuth();
+    const [stats, setStats] = useState<DashboardStats>({
+        totalChatbots: 0,
+        totalConversations: 0,
+        activeUsers: 0,
+        responseRate: '0%'
+    });
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState('');
 
-    const stats = [
-        { label: 'Total Chatbots', value: '3', icon: '🤖', color: 'from-purple-600 to-pink-600' },
-        { label: 'Total Conversations', value: '1,234', icon: '💬', color: 'from-blue-600 to-cyan-600' },
-        { label: 'Active Users', value: '456', icon: '👥', color: 'from-green-600 to-emerald-600' },
-        { label: 'Response Rate', value: '98%', icon: '⚡', color: 'from-orange-600 to-yellow-600' },
+    useEffect(() => {
+        fetchDashboardData();
+    }, []);
+
+    const fetchDashboardData = async () => {
+        try {
+            setLoading(true);
+            const token = await user?.getIdToken();
+            const data = await api.getDashboardStats(token) as DashboardStats;
+            setStats(data);
+        } catch (err: any) {
+            console.error('Failed to fetch dashboard data:', err);
+            setError(err.message);
+            // Use mock data as fallback
+            setStats({
+                totalChatbots: 3,
+                totalConversations: 1234,
+                activeUsers: 456,
+                responseRate: '98%'
+            });
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const statsDisplay = [
+        { label: 'Total Chatbots', value: stats.totalChatbots.toString(), icon: '🤖', color: 'from-purple-600 to-pink-600' },
+        { label: 'Total Conversations', value: stats.totalConversations.toLocaleString(), icon: '💬', color: 'from-blue-600 to-cyan-600' },
+        { label: 'Active Users', value: stats.activeUsers.toString(), icon: '👥', color: 'from-green-600 to-emerald-600' },
+        { label: 'Response Rate', value: stats.responseRate, icon: '⚡', color: 'from-orange-600 to-yellow-600' },
     ];
 
     const recentChats = [
@@ -31,15 +65,19 @@ const DashboardPage: React.FC = () => {
 
                 {/* Stats Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                    {stats.map((stat, index) => (
-                        <div key={index} className="bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-white/20">
-                            <div className={`w-12 h-12 rounded-xl bg-gradient-to-r ${stat.color} flex items-center justify-center text-2xl mb-4`}>
-                                {stat.icon}
+                    {loading ? (
+                        <div className="col-span-full text-center text-purple-200">Loading...</div>
+                    ) : (
+                        statsDisplay.map((stat, index) => (
+                            <div key={index} className="bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-white/20">
+                                <div className={`w-12 h-12 rounded-xl bg-gradient-to-r ${stat.color} flex items-center justify-center text-2xl mb-4`}>
+                                    {stat.icon}
+                                </div>
+                                <p className="text-purple-200 text-sm mb-1">{stat.label}</p>
+                                <p className="text-3xl font-bold text-white">{stat.value}</p>
                             </div>
-                            <p className="text-purple-200 text-sm mb-1">{stat.label}</p>
-                            <p className="text-3xl font-bold text-white">{stat.value}</p>
-                        </div>
-                    ))}
+                        ))
+                    )}
                 </div>
 
                 {/* Quick Actions */}
