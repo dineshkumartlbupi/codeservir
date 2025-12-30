@@ -76,48 +76,48 @@ const TrainChatbot: React.FC<TrainChatbotProps> = ({ chatbotId, businessName }) 
     };
 
     return (
-        <div className="bg-white rounded-2xl shadow-xl p-6 md:p-8 mt-8">
+        <div className="bg-gradient-to-br from-indigo-500/20 to-purple-500/20 backdrop-blur-sm rounded-2xl shadow-xl p-6 md:p-8 mt-8 border border-white/20">
             <div className="flex items-center gap-3 mb-6">
-                <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center">
+                <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center shadow-lg">
                     <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
                     </svg>
                 </div>
                 <div>
-                    <h2 className="text-2xl font-bold text-gray-800">Train Your Chatbot</h2>
-                    <p className="text-gray-600 text-sm">Add custom Q&A pairs for {businessName}</p>
+                    <h2 className="text-2xl font-bold text-white">Train Your Chatbot</h2>
+                    <p className="text-purple-200 text-sm">Add custom Q&A pairs for {businessName}</p>
                 </div>
             </div>
 
             {success && (
-                <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg flex items-center gap-3">
-                    <svg className="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                <div className="mb-6 p-4 bg-green-500/20 border border-green-400/30 rounded-lg flex items-center gap-3 backdrop-blur-sm">
+                    <svg className="w-5 h-5 text-green-300" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                     </svg>
-                    <span className="text-green-800 font-medium">Successfully trained! Your chatbot now knows these answers.</span>
+                    <span className="text-green-100 font-medium">Successfully trained! Your chatbot now knows these answers.</span>
                 </div>
             )}
 
             {error && (
-                <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-center gap-3">
-                    <svg className="w-5 h-5 text-red-600" fill="currentColor" viewBox="0 0 20 20">
+                <div className="mb-6 p-4 bg-red-500/20 border border-red-400/30 rounded-lg flex items-center gap-3 backdrop-blur-sm">
+                    <svg className="w-5 h-5 text-red-300" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
                     </svg>
-                    <span className="text-red-800">{error}</span>
+                    <span className="text-red-100">{error}</span>
                 </div>
             )}
 
             <form onSubmit={handleSubmit}>
                 <div className="space-y-4 mb-6">
                     {qaPairs.map((pair, index) => (
-                        <div key={index} className="p-5 bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl border border-gray-200 relative">
+                        <div key={index} className="p-5 bg-white/10 backdrop-blur-sm rounded-xl border border-white/20 relative">
                             <div className="flex justify-between items-center mb-3">
-                                <span className="text-sm font-semibold text-gray-700">Q&A Pair #{index + 1}</span>
+                                <span className="text-sm font-semibold text-purple-200">Q&A Pair #{index + 1}</span>
                                 {qaPairs.length > 1 && (
                                     <button
                                         type="button"
                                         onClick={() => removeQAPair(index)}
-                                        className="text-red-500 hover:text-red-700 transition-colors"
+                                        className="text-red-300 hover:text-red-100 transition-colors"
                                         title="Remove this pair"
                                     >
                                         <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
@@ -129,7 +129,7 @@ const TrainChatbot: React.FC<TrainChatbotProps> = ({ chatbotId, businessName }) 
 
                             <div className="space-y-3">
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    <label className="block text-sm font-medium text-purple-200 mb-1">
                                         Question
                                     </label>
                                     <input
@@ -137,12 +137,12 @@ const TrainChatbot: React.FC<TrainChatbotProps> = ({ chatbotId, businessName }) 
                                         value={pair.question}
                                         onChange={(e) => updateQAPair(index, 'question', e.target.value)}
                                         placeholder="e.g., What are your business hours?"
-                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                                        className="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-purple-300 focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all backdrop-blur-sm"
                                     />
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    <label className="block text-sm font-medium text-purple-200 mb-1">
                                         Answer
                                     </label>
                                     <textarea
@@ -150,7 +150,7 @@ const TrainChatbot: React.FC<TrainChatbotProps> = ({ chatbotId, businessName }) 
                                         onChange={(e) => updateQAPair(index, 'answer', e.target.value)}
                                         placeholder="e.g., We're open Monday to Friday, 9 AM to 5 PM"
                                         rows={3}
-                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all resize-none"
+                                        className="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-purple-300 focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all resize-none backdrop-blur-sm"
                                     />
                                 </div>
                             </div>
@@ -162,7 +162,7 @@ const TrainChatbot: React.FC<TrainChatbotProps> = ({ chatbotId, businessName }) 
                     <button
                         type="button"
                         onClick={addQAPair}
-                        className="flex-1 px-6 py-3 bg-gradient-to-r from-gray-100 to-gray-200 text-gray-700 rounded-xl font-semibold hover:from-gray-200 hover:to-gray-300 transition-all duration-200 flex items-center justify-center gap-2"
+                        className="flex-1 px-6 py-3 bg-white/10 backdrop-blur-sm text-white rounded-xl font-semibold hover:bg-white/20 border border-white/20 transition-all duration-200 flex items-center justify-center gap-2"
                     >
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -195,14 +195,14 @@ const TrainChatbot: React.FC<TrainChatbotProps> = ({ chatbotId, businessName }) 
                 </div>
             </form>
 
-            <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+            <div className="mt-6 p-4 bg-blue-500/20 border border-blue-400/30 rounded-lg backdrop-blur-sm">
                 <div className="flex gap-3">
-                    <svg className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                    <svg className="w-5 h-5 text-blue-300 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
                     </svg>
-                    <div className="text-sm text-blue-800">
+                    <div className="text-sm text-blue-100">
                         <p className="font-semibold mb-1">Training Tips:</p>
-                        <ul className="list-disc list-inside space-y-1 text-blue-700">
+                        <ul className="list-disc list-inside space-y-1 text-blue-200">
                             <li>Add common questions your customers ask</li>
                             <li>Be specific and clear in your answers</li>
                             <li>You can train your chatbot multiple times</li>
