@@ -34,14 +34,13 @@ export class AIService {
             for (const content of contents) {
                 // Store directly in Postgres
                 await query(
-                    `INSERT INTO knowledge_base (chatbot_id, content, type, source_url, metadata)
-                     VALUES ($1, $2, $3, $4, $5)`,
+                    `INSERT INTO knowledge_base (chatbot_id, content, content_type, source_url)
+                     VALUES ($1, $2, $3, $4)`,
                     [
                         chatbotId,
                         content.text,
                         content.type,
-                        content.sourceUrl || '',
-                        { createdAt: new Date().toISOString() }
+                        content.sourceUrl || ''
                     ]
                 );
             }
@@ -103,7 +102,7 @@ export class AIService {
             const params = [chatbotId, ...limitTerms.map(k => `%${k}%`)];
 
             const result = await query(
-                `SELECT content, type FROM knowledge_base 
+                `SELECT content, content_type as type FROM knowledge_base 
                  WHERE chatbot_id = $1 AND (${clauses})
                  LIMIT ${limit + 10}`,
                 params
