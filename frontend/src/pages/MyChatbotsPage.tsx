@@ -27,8 +27,10 @@ const MyChatbotsPage: React.FC = () => {
                 {
                     id: '1',
                     name: 'Support Bot',
+                    businessName: 'Example Business',
                     description: 'Customer support chatbot for main website',
                     website: 'example.com',
+                    contactEmail: user?.email || 'demo@example.com',
                     status: 'active',
                     conversations: 1234,
                     lastActive: '2 min ago',
@@ -37,8 +39,10 @@ const MyChatbotsPage: React.FC = () => {
                 {
                     id: '2',
                     name: 'Sales Bot',
+                    businessName: 'Example Shop',
                     description: 'Lead generation and sales assistant',
                     website: 'shop.example.com',
+                    contactEmail: user?.email || 'demo@example.com',
                     status: 'active',
                     conversations: 567,
                     lastActive: '1 hour ago',
