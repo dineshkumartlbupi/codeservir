@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import TrainChatbot from './TrainChatbot';
 
 interface FormData {
     ownerName: string;
@@ -161,6 +162,12 @@ const LandingPage: React.FC = () => {
                                 </button>
                             </div>
                         </div>
+
+                        {/* Training Section */}
+                        <TrainChatbot
+                            chatbotId={chatbotResponse.chatbot.id}
+                            businessName={chatbotResponse.chatbot.businessName}
+                        />
 
                         {/* Create Another Button */}
                         <button
