@@ -5,9 +5,14 @@ dotenv.config();
 
 dotenv.config();
 
-const redisUrl = process.env.REDIS_URL || process.env.KV_URL || process.env.UPSTASH_REDIS_REST_URL;
+const redisUrl = process.env.REDIS_URL ||
+    process.env.KV_URL ||
+    process.env.UPSTASH_REDIS_REST_URL ||
+    process.env.codeservir_redis_db_REDIS_URL ||
+    process.env.codeservir_redis_db_KV_URL;
+
 if (redisUrl) {
-    console.log('🔌 Redis Config: Using REDIS_URL (starts with ' + redisUrl.substring(0, 15) + '...)');
+    console.log('🔌 Redis Config: Using URL (starts with ' + redisUrl.substring(0, 15) + '...)');
 } else {
     console.log('🔌 Redis Config: Using Host/Port', process.env.REDIS_HOST, process.env.REDIS_PORT);
 }
