@@ -217,7 +217,14 @@ export class AIService {
                 return `Visit our website at ${context.websiteUrl} for more information.`;
             }
 
-            // 4. Generic fallback
+            // 4. Smart Fallback for vague "more info" requests
+            const vagueIntent = ['more', 'about', 'info', 'detail', 'describe', 'tell', 'what', 'it'];
+            const userWords = userMessage.toLowerCase().split(/\s+/);
+            if (vagueIntent.some(intent => userWords.includes(intent))) {
+                return `Here is some information about ${context.businessName}:\n\n${context.businessDescription}\n\nYou can also contact us at ${context.contactEmail}.`;
+            }
+
+            // 5. Generic fallback
             return `I'm sorry, I couldn't find specific information about that in my database. Please contact us directly at ${context.contactEmail} for assistance.`;
 
         } catch (error) {
