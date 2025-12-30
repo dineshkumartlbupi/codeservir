@@ -47,7 +47,7 @@ export class ChatbotController {
                 ownerName,
                 businessName,
                 websiteUrl,
-                contactNumber,
+                contactNumber: contactNumber || '', // Handle optional field
                 contactEmail,
                 businessAddress,
                 businessDescription,
