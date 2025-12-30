@@ -86,6 +86,8 @@ app.get('/api/debug/diagnose', async (req, res) => {
             has_upstash_url: !!process.env.UPSTASH_REDIS_REST_URL,
             has_custom_redis: !!process.env.codeservir_redis_db_REDIS_URL,
             has_custom_kv: !!process.env.codeservir_redis_db_KV_URL,
+            has_openai_key: !!process.env.OPENAI_API_KEY,
+            has_pinecone_key: !!process.env.PINECONE_API_KEY,
             node_env: process.env.NODE_ENV
         }
     };
