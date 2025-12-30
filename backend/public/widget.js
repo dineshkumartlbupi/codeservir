@@ -35,8 +35,8 @@
 
         #codeservir-widget {
           position: fixed;
-          bottom: 20px;
-          right: 20px;
+          bottom: 16px;
+          right: 16px;
           z-index: 999999;
           font-family: var(--widget-font);
         }
@@ -309,7 +309,7 @@
         #codeservir-powered {
             text-align: center;
             font-size: 11px;
-            color: var(--primary-color, #4F46E5);
+            color: #ccc;
             margin-top: 8px;
             font-weight: 500;
         }
@@ -321,7 +321,7 @@
         }
         
         #codeservir-powered a:hover {
-            color: var(--primary-color, #4F46E5);
+            color: var(--secondary-color, #10B981);
         }
 
         /* Typing Dots */
@@ -371,7 +371,7 @@
 
       <button id="codeservir-button" aria-label="Open chat">
         <svg viewBox="0 0 24 24">
-            <path d="M12 2C6.477 2 2 6.477 2 12c0 1.821.487 3.53 1.338 5.025.14.246.195.539.141.819l-.59 3.033 2.924-.764c.256-.067.525-.038.766.07C7.942 21.368 9.904 22 12 22c5.523 0 10-4.477 10-10S17.523 2 12 2zm1 14h-2v-2h2v2zm0-4h-2V7h2v5z"/>
+            <path d="M12 2a2 2 0 0 1 2 2c0 .74-.4 1.39-1 1.73V7h1a7 7 0 0 1 7 7h1a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-1v1a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-1H2a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1h1a7 7 0 0 1 7-7V5.73A2 2 0 0 1 12 2zM8 13.5A1.5 1.5 0 1 0 8 10.5 1.5 1.5 0 0 0 8 13.5zm8 0a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3z"/>
         </svg>
       </button>
 
