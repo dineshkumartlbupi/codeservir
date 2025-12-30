@@ -68,9 +68,12 @@ export class ChatbotController {
                 embedCode,
                 message: 'Chatbot created successfully! Your knowledge base is being built in the background.',
             });
-        } catch (error) {
+        } catch (error: any) {
             console.error('Create chatbot error:', error);
-            res.status(500).json({ error: 'Failed to create chatbot' });
+            res.status(500).json({
+                error: 'Failed to create chatbot',
+                details: error.message
+            });
         }
     }
 
