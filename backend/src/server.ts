@@ -45,6 +45,9 @@ const publicPath = path.join(process.cwd(), 'public');
 app.use('/static', express.static(publicPath));
 
 // Health check
+app.get('/api/health', (req: Request, res: Response) => {
+    res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
 app.get('/health', (req: Request, res: Response) => {
     res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
@@ -53,6 +56,7 @@ app.get('/health', (req: Request, res: Response) => {
 app.use('/api/chatbot', chatbotRoutes);
 app.use('/api/chat', chatRoutes);
 app.use('/api/payment', paymentRoutes);
+app.get('/', (req, res) => res.send('CodeServir API is running'));
 
 // Widget endpoint
 app.get('/widget.js', (req: Request, res: Response) => {
