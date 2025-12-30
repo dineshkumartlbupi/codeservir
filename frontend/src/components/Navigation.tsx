@@ -48,6 +48,13 @@ const Navigation: React.FC = () => {
                         >
                             Create Chatbot
                         </Link>
+
+                        <Link
+                            to="/login"
+                            className="ml-4 px-5 py-2 text-white hover:bg-white/10 rounded-lg font-medium transition-all"
+                        >
+                            Login
+                        </Link>
                     </div>
 
                     {/* Mobile Menu Button */}
