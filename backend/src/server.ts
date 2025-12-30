@@ -13,6 +13,7 @@ import paymentRoutes from './routes/payment.routes';
 // Import middleware
 import { errorHandler, notFoundHandler } from './middleware/error.middleware';
 import { manualCorsMiddleware } from './middleware/cors.middleware';
+import { embedHtml } from './templates/embed.template';
 
 dotenv.config();
 
@@ -60,7 +61,7 @@ app.get('/widget.js', (req: Request, res: Response) => {
 
 // Embed endpoint (for WebView)
 app.get('/embed/:chatbotId', (req: Request, res: Response) => {
-    res.sendFile(path.join(publicPath, 'embed.html'));
+    res.send(embedHtml);
 });
 
 // (Handlers moved to end of file)
