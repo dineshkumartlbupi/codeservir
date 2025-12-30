@@ -3,7 +3,9 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-const redisUrl = process.env.REDIS_URL;
+dotenv.config();
+
+const redisUrl = process.env.REDIS_URL || process.env.KV_URL || process.env.UPSTASH_REDIS_REST_URL;
 if (redisUrl) {
     console.log('🔌 Redis Config: Using REDIS_URL (starts with ' + redisUrl.substring(0, 15) + '...)');
 } else {
