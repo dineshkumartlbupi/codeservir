@@ -8,7 +8,6 @@ const Navigation: React.FC = () => {
     const isActive = (path: string) => location.pathname === path;
 
     const navLinks = [
-        { path: '/', label: 'Home' },
         { path: '/features', label: 'Features' },
         { path: '/pricing', label: 'Pricing' },
         { path: '/docs', label: 'Docs' },
