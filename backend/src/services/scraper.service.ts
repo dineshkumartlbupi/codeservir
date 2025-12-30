@@ -1,6 +1,7 @@
 import * as cheerio from 'cheerio';
 import axios from 'axios';
 // Puppeteer will be imported dynamically to avoid serverless cold start/size issues
+import type { Browser } from 'puppeteer';
 
 
 export interface ScrapedContent {
@@ -22,33 +23,81 @@ export class WebScraperService {
     /**
      * Scrape website content using Puppeteer for dynamic content
      */
-    /**
-     * Scrape website content using Puppeteer for dynamic content
-     */
     async scrapeWebsite(url: string): Promise<ScrapedContent[]> {
         try {
             console.log(`🔍 Starting to scrape: ${url}`);
 
-            // Bypass Puppeteer entirely to fix Vercel deployment
-            // console.warn('⚠️ Puppeteer disabled for Vercel stability. Using simple scraping.');
+            // On Vercel, Puppeteer often requires specific configuration (chrome-aws-lambda).
+            // For now, we'll try to launch, but fallback to simple scraping if it fails
+            // or if we detect we are in a serverless environment without proper setup.
+            let browser: Browser;
+            try {
+                if (process.env.VERCEL) {
+                    console.warn('⚠️ Running on Vercel: dynamic scraping with Puppeteer might be limited. Consider using a dedicated scraping API.');
+                    // Attempt launch (will likely fail purely with 'puppeteer' package on Vercel)
+                    // If you have 'puppeteer-core' and '@sparticuz/chromium', configure it here.
+                    // For now, we will throw to trigger fallback to scrapeSimple.
+                    throw new Error('Puppeteer disabled on Vercel standard environment');
+                }
 
-            const simpleContent = await this.scrapeSimple(url);
-            return [{
-                url,
-                title: 'Scraped Content',
-                content: simpleContent,
-                links: []
-            }];
+                // Dynamic import to prevent top-level crash on Vercel
+                const puppeteer = (await import('puppeteer')).default;
+                browser = await puppeteer.launch({
+                    headless: true,
+                    args: ['--no-sandbox', '--disable-setuid-sandbox'],
+                });
+            } catch (launchError) {
+                console.warn('⚠️ Puppeteer launch failed (expected on serverless without config). Falling back to simple scraping.', launchError);
+                // Fallback to simple scraping for the main URL
+                const simpleContent = await this.scrapeSimple(url);
+                return [{
+                    url,
+                    title: 'Scraped Content',
+                    content: simpleContent,
+                    links: []
+                }];
+            }
 
+            const scrapedPages: ScrapedContent[] = [];
+            const visitedUrls = new Set<string>();
+            const urlsToVisit: string[] = [url];
+
+            while (urlsToVisit.length > 0 && scrapedPages.length < this.maxPages) {
+                const currentUrl = urlsToVisit.shift()!;
+
+                if (visitedUrls.has(currentUrl)) continue;
+                visitedUrls.add(currentUrl);
+
+                try {
+                    const pageContent = await this.scrapePage(browser, currentUrl);
+                    if (pageContent) {
+                        scrapedPages.push(pageContent);
+
+                        // Add internal links to visit
+                        const baseUrl = new URL(url);
+                        const internalLinks = pageContent.links.filter(link => {
+                            try {
+                                const linkUrl = new URL(link, currentUrl);
+                                return linkUrl.hostname === baseUrl.hostname;
+                            } catch {
+                                return false;
+                            }
+                        });
+
+                        urlsToVisit.push(...internalLinks.slice(0, 5));
+                    }
+                } catch (error) {
+                    console.error(`Error scraping ${currentUrl}:`, error);
+                }
+            }
+
+            await browser.close();
+            console.log(`✅ Scraped ${scrapedPages.length} pages from ${url}`);
+
+            return scrapedPages;
         } catch (error) {
             console.error('Web scraping error:', error);
-            // Don't throw, just return empty to prevent creating chatbot failure
-            return [{
-                url,
-                title: 'Failed to scrape',
-                content: '',
-                links: []
-            }];
+            throw new Error('Failed to scrape website');
         }
     }
 

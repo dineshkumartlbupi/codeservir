@@ -17,6 +17,7 @@
     "express": "^4.21.2",
     "jsonwebtoken": "^9.0.2",
     "pg": "^8.13.1",
+    "puppeteer": "^24.34.0",
     "razorpay": "^2.9.5",
     "redis": "^4.7.0",
     "uuid": "^11.0.3"
