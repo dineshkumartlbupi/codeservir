@@ -9,6 +9,7 @@ import redisClient, { connectionError, connectRedis } from './config/redis';
 import chatbotRoutes from './routes/chatbot.routes';
 import chatRoutes from './routes/chat.routes';
 import paymentRoutes from './routes/payment.routes';
+import debugRoutes from './routes/debug.routes';
 
 // Import middleware
 import { errorHandler, notFoundHandler } from './middleware/error.middleware';
@@ -51,6 +52,7 @@ app.get('/health', (req: Request, res: Response) => {
 app.use('/api/chatbot', chatbotRoutes);
 app.use('/api/chat', chatRoutes);
 app.use('/api/payment', paymentRoutes);
+app.use('/api/debug', debugRoutes);
 app.get('/', (req, res) => res.send('CodeServir API is running'));
 
 // Widget endpoint
