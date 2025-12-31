@@ -70,9 +70,18 @@ export class ChatbotController {
             });
         } catch (error: any) {
             console.error('Create chatbot error:', error);
+
+            // Check if it's a limit error
+            if (error.message && error.message.includes('creation limit reached')) {
+                res.status(403).json({
+                    error: error.message,
+                    requiresUpgrade: true // Hint for frontend
+                });
+                return;
+            }
+
             res.status(500).json({
-                error: 'Failed to create chatbot',
-                details: error.message
+                error: error.message || 'Failed to create chatbot', // Return actual error message
             });
         }
     }
