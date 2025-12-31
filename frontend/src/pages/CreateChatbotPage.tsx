@@ -57,7 +57,7 @@ const CreateChatbotPage: React.FC = () => {
         setError('');
 
         try {
-            const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001';
+            const API_URL = process.env.REACT_APP_API_URL || 'https://codeservir-api.vercel.app';
 
             // First, check the limit
             const limitResponse = await fetch(`${API_URL}/api/chatbot/check-limit`, {
