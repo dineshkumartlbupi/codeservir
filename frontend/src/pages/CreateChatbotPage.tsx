@@ -318,7 +318,7 @@ const CreateChatbotPage: React.FC = () => {
                             href="/pricing"
                             className="flex-1 px-6 py-3 md:py-4 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-xl font-bold text-center transition-all hover:scale-105 shadow-lg flex items-center justify-center gap-2"
                         >
-                            <span className="text-xl">🚀</span> Upgrade to Premium
+                            Upgrade to Premium
                         </a>
                         <button
                             onClick={() => {
