@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import TrainChatbot from '../components/TrainChatbot';
 
 interface FormData {
@@ -250,67 +251,70 @@ const CreateChatbotPage: React.FC = () => {
     // Upgrade Modal
     if (showUpgradeModal) {
         return (
-            <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center px-4 ">
-                <div className="bg-white/10 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/20 p-8 md:p-12 max-w-2xl">
+            <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center px-4 py-8 z-50 fixed inset-0 overflow-y-auto">
+                <div className="bg-white/10 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/20 p-6 md:p-12 w-full max-w-2xl my-auto relative">
                     {/* Icon */}
                     <div className="text-center mb-6">
-                        <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-yellow-400 to-orange-600 rounded-full mb-4">
-                            <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div className="inline-flex items-center justify-center w-16 h-16 md:w-20 md:h-20 bg-gradient-to-br from-yellow-400 to-orange-600 rounded-full mb-4 shadow-lg animate-bounce-slow">
+                            <svg className="w-8 h-8 md:w-10 md:h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                             </svg>
                         </div>
-                        <h1 className="text-4xl font-bold text-white mb-4">
+                        <h1 className="text-2xl md:text-4xl font-bold text-white mb-2 md:mb-4">
                             Free Limit Reached! 🎯
                         </h1>
-                        <p className="text-xl text-purple-200 mb-2">
+                        <p className="text-lg md:text-xl text-purple-200 mb-2">
                             You've created {limitInfo?.current} out of {limitInfo?.max} free chatbots
                         </p>
-                        <p className="text-lg text-purple-300">
+                        <p className="text-base md:text-lg text-purple-300">
                             Upgrade to Premium to create unlimited chatbots!
                         </p>
                     </div>
 
                     {/* Features */}
-                    <div className="bg-gradient-to-br from-purple-500/20 to-pink-500/20 backdrop-blur-sm rounded-2xl p-6 mb-8 border border-purple-300/30">
-                        <h2 className="text-2xl font-bold text-white mb-4">Premium Benefits:</h2>
+                    <div className="bg-gradient-to-br from-purple-500/20 to-pink-500/20 backdrop-blur-sm rounded-2xl p-4 md:p-6 mb-6 md:mb-8 border border-purple-300/30">
+                        <h2 className="text-xl md:text-2xl font-bold text-white mb-4">Premium Benefits:</h2>
                         <ul className="space-y-3">
-                            <li className="flex items-start gap-3 text-purple-100">
-                                <span className="text-green-400 text-xl">✓</span>
+                            <li className="flex items-start gap-3 text-purple-100 text-sm md:text-base">
+                                <span className="text-green-400 text-lg md:text-xl shrink-0">✓</span>
                                 <span><strong>Unlimited Chatbots</strong> - Create as many as you need</span>
                             </li>
-                            <li className="flex items-start gap-3 text-purple-100">
-                                <span className="text-green-400 text-xl">✓</span>
+                            <li className="flex items-start gap-3 text-purple-100 text-sm md:text-base">
+                                <span className="text-green-400 text-lg md:text-xl shrink-0">✓</span>
                                 <span><strong>Advanced Analytics</strong> - Track performance & insights</span>
                             </li>
-                            <li className="flex items-start gap-3 text-purple-100">
-                                <span className="text-green-400 text-xl">✓</span>
+                            <li className="flex items-start gap-3 text-purple-100 text-sm md:text-base">
+                                <span className="text-green-400 text-lg md:text-xl shrink-0">✓</span>
                                 <span><strong>Priority Support</strong> - Get help when you need it</span>
                             </li>
-                            <li className="flex items-start gap-3 text-purple-100">
-                                <span className="text-green-400 text-xl">✓</span>
+                            <li className="flex items-start gap-3 text-purple-100 text-sm md:text-base">
+                                <span className="text-green-400 text-lg md:text-xl shrink-0">✓</span>
                                 <span><strong>Custom Branding</strong> - Remove "Powered by CodeServir"</span>
                             </li>
-                            <li className="flex items-start gap-3 text-purple-100">
-                                <span className="text-green-400 text-xl">✓</span>
+                            <li className="flex items-start gap-3 text-purple-100 text-sm md:text-base">
+                                <span className="text-green-400 text-lg md:text-xl shrink-0">✓</span>
                                 <span><strong>API Access</strong> - Integrate with your systems</span>
                             </li>
                         </ul>
                     </div>
 
                     {/* Pricing */}
-                    <div className="bg-gradient-to-r from-purple-600 to-pink-600 rounded-2xl p-6 mb-6 text-center">
-                        <p className="text-purple-100 text-sm mb-2">Starting at</p>
-                        <p className="text-5xl font-bold text-white mb-2">$29<span className="text-2xl">/mo</span></p>
-                        <p className="text-purple-100">Billed monthly, cancel anytime</p>
+                    <div className="bg-gradient-to-r from-purple-600 to-pink-600 rounded-2xl p-6 mb-6 text-center shadow-lg transform hover:scale-105 transition-transform duration-300">
+                        <p className="text-purple-100 text-xs md:text-sm mb-1 uppercase tracking-wider">Starting at</p>
+                        <div className="flex items-baseline justify-center gap-1">
+                            <p className="text-4xl md:text-5xl font-bold text-white">$29</p>
+                            <span className="text-xl md:text-2xl text-purple-100">/mo</span>
+                        </div>
+                        <p className="text-purple-100 text-sm mt-1">Billed monthly, cancel anytime</p>
                     </div>
 
                     {/* Buttons */}
                     <div className="flex flex-col sm:flex-row gap-4">
                         <a
                             href="/pricing"
-                            className="flex-1 px-6 py-4 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-xl font-bold text-center transition-all hover:scale-105 shadow-lg"
+                            className="flex-1 px-6 py-3 md:py-4 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-xl font-bold text-center transition-all hover:scale-105 shadow-lg flex items-center justify-center gap-2"
                         >
-                            🚀 Upgrade to Premium
+                            <span className="text-xl">🚀</span> Upgrade to Premium
                         </a>
                         <button
                             onClick={() => {
@@ -320,7 +324,7 @@ const CreateChatbotPage: React.FC = () => {
                                     contactEmail: ''
                                 });
                             }}
-                            className="flex-1 px-6 py-4 bg-white/10 hover:bg-white/20 text-white rounded-xl font-semibold transition-all"
+                            className="flex-1 px-6 py-3 md:py-4 bg-white/10 hover:bg-white/20 text-white rounded-xl font-semibold transition-all border border-white/10 hover:border-white/30"
                         >
                             Try Different Email
                         </button>
@@ -330,9 +334,9 @@ const CreateChatbotPage: React.FC = () => {
                     <div className="mt-6 text-center">
                         <p className="text-purple-200 text-sm">
                             Already have an account?{' '}
-                            <a href="/login" className="text-purple-400 hover:text-purple-300 font-semibold underline">
+                            <Link to="/login" className="text-purple-400 hover:text-purple-300 font-semibold underline decoration-2 underline-offset-4">
                                 Login to manage your chatbots
-                            </a>
+                            </Link>
                         </p>
                     </div>
                 </div>
