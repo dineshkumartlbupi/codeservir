@@ -57,7 +57,7 @@ const CreateChatbotPage: React.FC = () => {
         setError('');
 
         try {
-            const API_URL = process.env.REACT_APP_API_URL || 'https://codeservir-api.vercel.app';
+            const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001';
 
             // First, check the limit
             const limitResponse = await fetch(`${API_URL}/api/chatbot/check-limit`, {
@@ -68,17 +68,21 @@ const CreateChatbotPage: React.FC = () => {
                 body: JSON.stringify({ email: formData.contactEmail }),
             });
 
-            const limitData = await limitResponse.json();
+            if (limitResponse.ok) {
+                const limitData = await limitResponse.json();
 
-            // If limit exceeded, show upgrade modal
-            if (!limitData.canCreate) {
-                setLimitInfo({
-                    current: limitData.currentCount,
-                    max: limitData.maxLimit
-                });
-                setShowUpgradeModal(true);
-                setLoading(false);
-                return;
+                // Only block if explicitly told canCreate is false
+                if (limitData.canCreate === false) {
+                    setLimitInfo({
+                        current: limitData.currentCount,
+                        max: limitData.maxLimit
+                    });
+                    setShowUpgradeModal(true);
+                    setLoading(false);
+                    return;
+                }
+            } else {
+                console.warn('Limit check failed, proceeding with creation attempt (Backend will enforce if needed)');
             }
 
             // Proceed with chatbot creation
