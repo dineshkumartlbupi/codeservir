@@ -13,6 +13,12 @@ export class ChatbotService {
         try {
             console.log(`🤖 Creating chatbot for: ${data.businessName}`);
 
+            // Enforce limit check
+            const limitCheck = await this.checkLimit(data.contactEmail);
+            if (!limitCheck.canCreate) {
+                throw new Error(`Chatbot creation limit reached (${limitCheck.currentCount}/${limitCheck.maxLimit}). Please upgrade to premium.`);
+            }
+
             // Generate unique chatbot ID
             const chatbotId = `cb_${uuidv4().replace(/-/g, '').substring(0, 16)}`;
 
