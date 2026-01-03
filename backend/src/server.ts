@@ -1,7 +1,7 @@
+import 'dotenv/config';
 import express, { Application, Request, Response } from 'express';
 // Force update for CORS fix
 import cors from 'cors';
-import dotenv from 'dotenv';
 import path from 'path';
 import redisClient, { connectionError, connectRedis } from './config/redis';
 
@@ -11,13 +11,14 @@ import chatRoutes from './routes/chat.routes';
 import paymentRoutes from './routes/payment.routes';
 import debugRoutes from './routes/debug.routes';
 import dashboardRoutes from './routes/dashboard.routes';
+import authRoutes from './routes/auth.routes';
 
 // Import middleware
 import { errorHandler, notFoundHandler } from './middleware/error.middleware';
 import { manualCorsMiddleware } from './middleware/cors.middleware';
 import { embedHtml } from './templates/embed.template';
 
-dotenv.config();
+
 
 const app: Application = express();
 const PORT = process.env.PORT || 5001; // Port 5000 is reserved on macOS (AirPlay)
@@ -55,6 +56,7 @@ app.use('/api/chat', chatRoutes);
 app.use('/api/payment', paymentRoutes);
 app.use('/api/debug', debugRoutes);
 app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/auth', authRoutes);
 app.get('/', (req, res) => res.send('CodeServir API is running'));
 
 // Widget endpoint
@@ -199,6 +201,19 @@ app.get('/api/admin/init-db', async (req, res) => {
                 start_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 end_date TIMESTAMP,
                 stripe_customer_id VARCHAR(255),
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
+        `);
+
+        // Users Table (New)
+        await query(`
+            CREATE TABLE IF NOT EXISTS users (
+                id VARCHAR(255) PRIMARY KEY,
+                email VARCHAR(255) UNIQUE NOT NULL,
+                password_hash VARCHAR(255) NOT NULL,
+                full_name VARCHAR(255),
+                phone VARCHAR(50),
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             );

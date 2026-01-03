@@ -169,29 +169,47 @@ export class ChatbotService {
      */
     async canRespond(chatbotId: string): Promise<{ allowed: boolean; reason?: string }> {
         try {
-            // Get current chat count from cache
-            const cacheKey = `chatbot:${chatbotId}:count`;
-            let chatCount = await cacheGetNumber(cacheKey);
+            // 1. Get Chatbot Owner
+            const chatbot = await chatbotModel.findById(chatbotId);
+            if (!chatbot) return { allowed: false, reason: 'Chatbot not found' };
 
-            // If not in cache, get from database
-            if (chatCount === 0) {
-                const usage = await chatbotModel.getUsage(chatbotId);
-                chatCount = usage?.chat_count || 0;
-                await cacheSet(cacheKey, chatCount.toString());
+            // 2. Get User Subscription & Limits
+            const userSubscriptionModel = (await import('../models/user-subscription.model')).default;
+            const subscription = await userSubscriptionModel.findByEmail(chatbot.contactEmail);
+
+            // Dynamic limits based on plan
+            let chatLimit = 1000; // Basic
+            if (subscription?.status === 'active') {
+                if (subscription.planType === 'pro') chatLimit = 10000;
+                if (subscription.planType === 'premium') chatLimit = 100000;
             }
 
-            // Get subscription limit
-            const subscription = await chatbotModel.getSubscription(chatbotId);
-            const chatLimit = subscription?.chat_limit || 1000;
+            // 3. Calculate Global Usage (Sum of all chatbots)
+            // Ideally we'd have a user_usage table, but summing is fine for < 20 bots
+            const userChatbots = await chatbotModel.findByEmail(chatbot.contactEmail);
 
-            // Ensure numeric comparison (Handle BIGINT strings from PG)
-            const currentCount = Number(chatCount);
-            const limit = Number(chatLimit);
+            let totalUsage = 0;
+            for (const bot of userChatbots) {
+                // Try cache first
+                const cacheKey = `chatbot:${bot.id}:count`;
+                let count = await cacheGetNumber(cacheKey);
 
-            if (currentCount >= limit) {
+                // Fallback to DB if cache miss (0 technically valid but check DB usage ref if needed)
+                if (count === 0) {
+                    const usage = await chatbotModel.getUsage(bot.id);
+                    count = usage?.chat_count || 0;
+                    // Refresh cache
+                    if (count > 0) await cacheSet(cacheKey, count.toString());
+                }
+                totalUsage += Number(count);
+            }
+
+            console.log(`Checking Global Limit for ${chatbot.contactEmail}: Used ${totalUsage}/${chatLimit}`);
+
+            if (totalUsage >= chatLimit) {
                 return {
                     allowed: false,
-                    reason: `Your free chat limit is over (Count: ${chatCount}, Limit: ${chatLimit}). Please upgrade your plan to continue using the chatbot.`,
+                    reason: `Account-wide chat limit reached (${totalUsage}/${chatLimit}). Please upgrade your plan.`,
                 };
             }
 
@@ -267,22 +285,24 @@ export class ChatbotService {
     async checkLimit(email: string): Promise<{ canCreate: boolean; currentCount: number; maxLimit: number; requiresUpgrade: boolean }> {
         const currentCount = await chatbotModel.countByEmail(email);
 
-        // TODO: integerate with userSubscriptionModel to get actual limit
-        // For now, assume 5 for free, unlimited for premium logic handled in controller/model later
-        // or just hardcode checking here using userSubscriptionModel
-
-        // Importing here to avoid circular dependency if any, though model imports are fine
         const userSubscriptionModel = (await import('../models/user-subscription.model')).default;
         const subscription = await userSubscriptionModel.findByEmail(email);
 
-        const isPremium = subscription?.planType === 'premium' && subscription?.status === 'active';
-        const maxLimit = isPremium ? 999999 : 5;
+        let maxLimit = 5; // Default Free Limit
+        const planType = subscription?.planType || 'basic';
+
+        if (subscription?.status === 'active') {
+            if (planType === 'pro') maxLimit = 10;
+            if (planType === 'premium') maxLimit = 20;
+        }
+
+        console.log(`Checking limit for ${email}: Count=${currentCount}, Max=${maxLimit}, Plan=${planType}`);
 
         return {
             canCreate: currentCount < maxLimit,
             currentCount,
             maxLimit,
-            requiresUpgrade: currentCount >= maxLimit && !isPremium
+            requiresUpgrade: currentCount >= maxLimit
         };
     }
 

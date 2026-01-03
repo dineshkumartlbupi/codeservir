@@ -1,6 +1,8 @@
 import { Router } from 'express';
 import chatbotController from '../controllers/chatbot.controller';
 
+import { authenticateToken } from '../middleware/auth.middleware';
+
 const router = Router();
 
 // Check limit
@@ -10,7 +12,7 @@ router.post('/check-limit', (req, res) => chatbotController.checkLimit(req, res)
 router.post('/by-email', (req, res) => chatbotController.listByEmail(req, res));
 
 // List chatbots (Auth required)
-router.get('/', (req, res) => chatbotController.listChatbots(req, res));
+router.get('/', authenticateToken, (req, res) => chatbotController.listChatbots(req, res));
 
 // Create chatbot
 router.post('/create', (req, res) => chatbotController.createChatbot(req, res));
@@ -31,6 +33,6 @@ router.get('/:chatbotId/config', (req, res) => chatbotController.getChatbotConfi
 router.get('/:chatbotId/stats', (req, res) => chatbotController.getChatStats(req, res));
 
 // Train Chatbot
-router.post('/:chatbotId/train', (req, res) => chatbotController.trainChatbot(req, res));
+router.post('/:chatbotId/train', authenticateToken, (req, res) => chatbotController.trainChatbot(req, res));
 
 export default router;

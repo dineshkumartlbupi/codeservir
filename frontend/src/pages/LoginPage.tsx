@@ -14,24 +14,42 @@ const LoginPage: React.FC = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
         setError('');
 
-        // Handle login logic here
-        console.log('Login:', formData);
-        // API call: POST /api/auth/login
-        // Response will include user role (admin or user)
-        // Redirect based on role:
-        // - Admin: /admin/dashboard
-        // - User: /dashboard
+        try {
+            const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001';
+            const response = await fetch(`${API_URL}/api/auth/login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    email: formData.email,
+                    password: formData.password
+                })
+            });
 
-        // Simulate API call
-        setTimeout(() => {
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.message || 'Login failed');
+            }
+
+            // Store token
+            localStorage.setItem('token', data.token);
+            if (data.user) {
+                localStorage.setItem('user', JSON.stringify(data.user));
+                setUser(data.user); // Update context
+            }
+
+            navigate('/dashboard');
+        } catch (err: any) {
+            console.error('Login Error:', err);
+            setError(err.message || 'An error occurred during login');
+        } finally {
             setLoading(false);
-            // navigate('/dashboard');
-        }, 1000);
+        }
     };
 
     const handleGoogleLogin = async () => {
@@ -44,17 +62,35 @@ const LoginPage: React.FC = () => {
             if (result.success && result.user && result.idToken) {
                 console.log('Google Sign-In Success:', result.user);
 
-                // Send to your backend to create/login user
-                // POST /api/auth/google-login
-                // Body: { idToken: result.idToken, user: result.user }
+                const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001';
+                const response = await fetch(`${API_URL}/api/auth/google`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        idToken: result.idToken,
+                        user: result.user
+                    })
+                });
 
-                // For now, just navigate to home
-                // The AuthContext will automatically update via onAuthStateChange
-                navigate('/');
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.message || 'Google sign-in failed');
+                }
+
+                // Store token
+                localStorage.setItem('token', data.token);
+                if (data.user) {
+                    localStorage.setItem('user', JSON.stringify(data.user));
+                    setUser(data.user); // Update context if available
+                }
+
+                navigate('/dashboard');
             } else {
                 setError(result.error || 'Google sign-in failed');
             }
         } catch (err: any) {
+            console.error('Google Login Error:', err);
             setError(err.message || 'An error occurred during Google sign-in');
         } finally {
             setLoading(false);

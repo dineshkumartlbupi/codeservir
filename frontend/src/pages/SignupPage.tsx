@@ -1,21 +1,22 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { signInWithGoogle } from '../config/firebase';
+import { useAuth } from '../contexts/AuthContext';
 
 const SignupPage: React.FC = () => {
     const navigate = useNavigate();
+    const { setUser } = useAuth();
     const [formData, setFormData] = useState({
         fullName: '',
         email: '',
         password: '',
         confirmPassword: '',
-        businessName: '',
         phone: ''
     });
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (formData.password !== formData.confirmPassword) {
             setError('Passwords do not match!');
@@ -24,14 +25,34 @@ const SignupPage: React.FC = () => {
         setLoading(true);
         setError('');
 
-        // Handle signup logic here - create user account
-        console.log('Signup:', formData);
-        // API call: POST /api/auth/signup
+        try {
+            const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001';
+            const response = await fetch(`${API_URL}/api/auth/signup`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(formData)
+            });
 
-        setTimeout(() => {
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.message || 'Signup failed');
+            }
+
+            // Store token
+            localStorage.setItem('token', data.token);
+            if (data.user) {
+                localStorage.setItem('user', JSON.stringify(data.user));
+                setUser(data.user);
+            }
+
+            navigate('/dashboard');
+        } catch (err: any) {
+            console.error('Signup Error:', err);
+            setError(err.message || 'An error occurred during sign up');
+        } finally {
             setLoading(false);
-            // navigate('/dashboard');
-        }, 1000);
+        }
     };
 
     const handleGoogleSignup = async () => {
@@ -44,16 +65,36 @@ const SignupPage: React.FC = () => {
             if (result.success && result.user && result.idToken) {
                 console.log('Google Sign-Up Success:', result.user);
 
-                // Send to your backend to create user account
-                // POST /api/auth/google-signup
-                // Body: { idToken: result.idToken, user: result.user }
+                const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001';
+                const response = await fetch(`${API_URL}/api/auth/google`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        idToken: result.idToken,
+                        user: result.user
+                    })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.message || 'Google sign-up failed');
+                }
+
+                // Store token
+                localStorage.setItem('token', data.token);
+                if (data.user) {
+                    localStorage.setItem('user', JSON.stringify(data.user));
+                    setUser(data.user);
+                }
 
                 alert(`Welcome ${result.user.displayName}!`);
-                // navigate('/dashboard');
+                navigate('/dashboard');
             } else {
                 setError(result.error || 'Google sign-up failed');
             }
         } catch (err: any) {
+            console.error('Google Signup Error:', err);
             setError(err.message || 'An error occurred during Google sign-up');
         } finally {
             setLoading(false);
@@ -124,11 +165,11 @@ const SignupPage: React.FC = () => {
                         </div>
 
                         {/* Business Name */}
-                        <div>
-                            <label htmlFor="businessName" className="block text-sm font-medium text-purple-200 mb-2">
+                        {/* <div> */}
+                        {/* <label htmlFor="businessName" className="block text-sm font-medium text-purple-200 mb-2">
                                 Business Name (Optional)
-                            </label>
-                            <div className="relative">
+                            </label> */}
+                        {/* <div className="relative">
                                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                                     <svg className="h-5 w-5 text-purple-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
@@ -142,8 +183,8 @@ const SignupPage: React.FC = () => {
                                     className="block w-full pl-10 pr-3 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-purple-300 focus:outline-none focus:ring-2 focus:ring-purple-500 backdrop-blur-sm"
                                     placeholder="Your Company"
                                 />
-                            </div>
-                        </div>
+                            </div> */}
+                        {/* </div> */}
 
                         {/* Phone */}
                         <div>

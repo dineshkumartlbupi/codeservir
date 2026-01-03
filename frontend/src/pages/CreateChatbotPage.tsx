@@ -271,21 +271,21 @@ const CreateChatbotPage: React.FC = () => {
                             You've created {limitInfo?.current} out of {limitInfo?.max} free chatbots
                         </p>
                         <p className="text-base md:text-lg text-purple-300">
-                            Upgrade to Premium to create unlimited chatbots!
+                            Upgrade your plan to create more chatbots!
                         </p>
                     </div>
 
                     {/* Features */}
                     <div className="bg-gradient-to-br from-purple-500/20 to-pink-500/20 backdrop-blur-sm rounded-2xl p-4 md:p-6 mb-6 md:mb-8 border border-purple-300/30">
-                        <h2 className="text-xl md:text-2xl font-bold text-white mb-4">Premium Benefits:</h2>
+                        <h2 className="text-xl md:text-2xl font-bold text-white mb-4">Upgrade Benefits:</h2>
                         <ul className="space-y-3">
                             <li className="flex items-start gap-3 text-purple-100 text-sm md:text-base">
                                 <span className="text-green-400 text-lg md:text-xl shrink-0">✓</span>
-                                <span><strong>Unlimited Chatbots</strong> - Create as many as you need</span>
+                                <span><strong>More Chatbots</strong> - Create up to 10 (Pro) or 20 (Premium) bots</span>
                             </li>
                             <li className="flex items-start gap-3 text-purple-100 text-sm md:text-base">
                                 <span className="text-green-400 text-lg md:text-xl shrink-0">✓</span>
-                                <span><strong>Advanced Analytics</strong> - Track performance & insights</span>
+                                <span><strong>High Chat Limits</strong> - Up to 100,000 chats/month</span>
                             </li>
                             <li className="flex items-start gap-3 text-purple-100 text-sm md:text-base">
                                 <span className="text-green-400 text-lg md:text-xl shrink-0">✓</span>
@@ -306,7 +306,7 @@ const CreateChatbotPage: React.FC = () => {
                     <div className="bg-gradient-to-r from-purple-600 to-pink-600 rounded-2xl p-6 mb-6 text-center shadow-lg transform hover:scale-105 transition-transform duration-300">
                         <p className="text-purple-100 text-xs md:text-sm mb-1 uppercase tracking-wider">Starting at</p>
                         <div className="flex items-baseline justify-center gap-1">
-                            <p className="text-4xl md:text-5xl font-bold text-white">$29</p>
+                            <p className="text-4xl md:text-5xl font-bold text-white">₹499</p>
                             <span className="text-xl md:text-2xl text-purple-100">/mo</span>
                         </div>
                         <p className="text-purple-100 text-sm mt-1">Billed monthly, cancel anytime</p>

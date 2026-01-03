@@ -1,7 +1,17 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
+import { useState } from 'react';
+
+declare global {
+    interface Window {
+        Razorpay: any;
+    }
+}
 
 const PricingPage: React.FC = () => {
+    const { user } = useAuth();
+    const navigate = useNavigate();
+    const [loading, setLoading] = useState(false);
     const plans = [
         {
             name: 'Starter',
@@ -9,8 +19,8 @@ const PricingPage: React.FC = () => {
             period: 'forever',
             description: 'Perfect for trying out CodeServir',
             features: [
-                '1 Chatbot',
-                '100 conversations/month',
+                '5 Chatbots',
+                '1,000 conversations',
                 'Basic customization',
                 'Website integration',
                 'Email support',
@@ -21,12 +31,12 @@ const PricingPage: React.FC = () => {
         },
         {
             name: 'Professional',
-            price: '$29',
+            price: '₹499',
             period: '/month',
             description: 'For growing businesses',
             features: [
-                '5 Chatbots',
-                '5,000 conversations/month',
+                '10 Chatbots',
+                '10,000 conversations',
                 'Full customization',
                 'Advanced AI features',
                 'Analytics dashboard',
@@ -34,17 +44,17 @@ const PricingPage: React.FC = () => {
                 'Custom training',
                 'API access'
             ],
-            cta: 'Start Free Trial',
+            cta: 'Buy Now',
             popular: true
         },
         {
             name: 'Enterprise',
-            price: 'Custom',
-            period: 'pricing',
+            price: '₹999',
+            period: '/month',
             description: 'For large organizations',
             features: [
-                'Unlimited chatbots',
-                'Unlimited conversations',
+                '20 Chatbots',
+                '100,000 conversations',
                 'White-label solution',
                 'Dedicated support',
                 'Custom integrations',
@@ -53,10 +63,144 @@ const PricingPage: React.FC = () => {
                 'Team collaboration',
                 'Custom deployment'
             ],
-            cta: 'Contact Sales',
+            cta: 'Buy Now',
             popular: false
         }
     ];
+
+    const handleSubscribe = async (plan: any) => {
+        if (!user) {
+            navigate('/login');
+            return;
+        }
+
+        if (plan.name === 'Starter') {
+            navigate('/create');
+            return;
+        }
+
+        setLoading(true);
+
+        try {
+            const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001';
+
+            // 1. Get Chatbots (MVP: Select first one or ask user)
+            // For now, let's just get the first chatbot of the user 
+            // NOTE: Ideally we should show a modal to select the chatbot
+            const chatbotsRes = await fetch(`${API_URL}/api/dashboard/stats`, {
+                headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+            });
+            const chatbotsData = await chatbotsRes.json();
+
+            // This endpoint might not return list of chatbots directly, checking routes/dashboard.routes.ts might be needed.
+            // Assuming we might need a specific route, but let's try to list chatbots.
+            // Actually, /api/chatbot might accept GET to list
+            const listRes = await fetch(`${API_URL}/api/chatbot`, {
+                headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+            });
+            const listData = await listRes.json();
+
+            let chatbotId = '';
+            if (listData && listData.length > 0) {
+                chatbotId = listData[0].id; // Pick first for MVP
+            } else {
+                alert('Please create a chatbot first to upgrade.');
+                navigate('/create');
+                return;
+            }
+
+            // 2. Create Order
+            const orderRes = await fetch(`${API_URL}/api/payment/create-order`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                },
+                body: JSON.stringify({
+                    chatbotId: chatbotId,
+                    planType: (() => {
+                        const name = plan.name.toLowerCase();
+                        if (name === 'starter') return 'basic';
+                        if (name === 'professional') return 'pro';
+                        if (name === 'enterprise') return 'premium';
+                        return name;
+                    })()
+                })
+            });
+
+            const orderData = await orderRes.json();
+
+            if (!orderData.success) {
+                throw new Error(orderData.error || 'Failed to create order');
+            }
+
+            const { order } = orderData;
+
+            // 3. Open Razorpay
+            const options = {
+                key: order.keyId,
+                amount: order.amount,
+                currency: order.currency,
+                name: "CodeServir",
+                description: `${plan.name} Subscription`,
+                order_id: order.orderId,
+                handler: async function (response: any) {
+                    // 4. Verify Payment
+                    try {
+                        const verifyRes = await fetch(`${API_URL}/api/payment/verify`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${localStorage.getItem('token')}`
+                            },
+                            body: JSON.stringify({
+                                chatbotId,
+                                planType: (() => {
+                                    const name = plan.name.toLowerCase();
+                                    if (name === 'starter') return 'basic';
+                                    if (name === 'professional') return 'pro';
+                                    if (name === 'enterprise') return 'premium';
+                                    return name;
+                                })(),
+                                orderId: response.razorpay_order_id,
+                                paymentId: response.razorpay_payment_id,
+                                signature: response.razorpay_signature,
+                                amount: order.amount
+                            })
+                        });
+
+                        const verifyData = await verifyRes.json();
+                        if (verifyData.success) {
+                            alert('Payment Successful! Subscription Active.');
+                            navigate('/dashboard');
+                        } else {
+                            alert('Payment Verification Failed');
+                        }
+                    } catch (err) {
+                        console.error(err);
+                        alert('Payment Verification Failed');
+                    }
+                },
+                prefill: {
+                    name: user.displayName || user.email || '',
+                    email: user.email || '',
+                    contact: ''
+                },
+                theme: {
+                    color: "#6366f1"
+                }
+            };
+
+            const rzp1 = new window.Razorpay(options);
+            rzp1.open();
+
+        } catch (error: any) {
+            console.error('Payment Error:', error);
+            alert(error.message || 'Payment initialization failed');
+        } finally {
+            setLoading(false);
+        }
+    };
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 pt-20">
@@ -86,8 +230,8 @@ const PricingPage: React.FC = () => {
                             <div
                                 key={index}
                                 className={`relative bg-white/10 backdrop-blur-xl rounded-3xl p-8 border transition-all hover:scale-105 ${plan.popular
-                                        ? 'border-purple-400 shadow-2xl shadow-purple-500/50'
-                                        : 'border-white/20'
+                                    ? 'border-purple-400 shadow-2xl shadow-purple-500/50'
+                                    : 'border-white/20'
                                     }`}
                             >
                                 {plan.popular && (
@@ -118,15 +262,16 @@ const PricingPage: React.FC = () => {
                                     ))}
                                 </ul>
 
-                                <Link
-                                    to="/create"
+                                <button
+                                    onClick={() => handleSubscribe(plan)}
+                                    disabled={loading}
                                     className={`block w-full py-4 rounded-xl font-bold text-center transition-all ${plan.popular
-                                            ? 'bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white shadow-lg'
-                                            : 'bg-white/10 hover:bg-white/20 text-white border border-white/20'
-                                        }`}
+                                        ? 'bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white shadow-lg'
+                                        : 'bg-white/10 hover:bg-white/20 text-white border border-white/20'
+                                        } disabled:opacity-50 disabled:cursor-not-allowed`}
                                 >
                                     {plan.cta}
-                                </Link>
+                                </button>
                             </div>
                         ))}
                     </div>

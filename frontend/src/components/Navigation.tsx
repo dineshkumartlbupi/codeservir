@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { signOutUser } from '../config/firebase';
+
 
 const Navigation: React.FC = () => {
     const [isOpen, setIsOpen] = useState(false);
     const [showProfileMenu, setShowProfileMenu] = useState(false);
     const location = useLocation();
-    const { user } = useAuth();
+    const navigate = useNavigate();
+    const { user, logout } = useAuth();
 
     const isActive = (path: string) => location.pathname === path;
 
@@ -20,9 +21,9 @@ const Navigation: React.FC = () => {
     ];
 
     const handleSignOut = async () => {
-        await signOutUser();
+        await logout();
         setShowProfileMenu(false);
-        window.location.href = '/';
+        navigate('/');
     };
 
     return (

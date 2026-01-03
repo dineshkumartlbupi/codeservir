@@ -10,23 +10,26 @@ export interface PaymentPlan {
     currency: string;
 }
 
-export const PAYMENT_PLANS: { [key: string]: PaymentPlan } = {
+export const PAYMENT_PLANS: { [key: string]: PaymentPlan & { chatbotLimit: number } } = {
     basic: {
         name: 'Basic',
-        price: 999,
-        chatLimit: 100000,
+        price: 0,
+        chatLimit: 1000,
+        chatbotLimit: 5,
         currency: 'INR',
     },
     pro: {
         name: 'Pro',
-        price: 1999,
-        chatLimit: 1000000,
+        price: 499,
+        chatLimit: 10000,
+        chatbotLimit: 10,
         currency: 'INR',
     },
     premium: {
         name: 'Premium',
-        price: 5999,
-        chatLimit: 100000000,
+        price: 999,
+        chatLimit: 100000,
+        chatbotLimit: 20,
         currency: 'INR',
     },
 };
@@ -41,6 +44,9 @@ export class PaymentService {
                 key_id: process.env.RAZORPAY_KEY_ID,
                 key_secret: process.env.RAZORPAY_KEY_SECRET,
             });
+            console.log('✅ Razorpay initialized');
+        } else {
+            console.error('❌ Razorpay keys missing in environment variables');
         }
     }
 
@@ -57,7 +63,7 @@ export class PaymentService {
             const options = {
                 amount: plan.price * 100, // Amount in paise
                 currency: plan.currency,
-                receipt: `receipt_${chatbotId}_${Date.now()}`,
+                receipt: `rcpt_${Date.now()}_${chatbotId.substring(0, 4)}`,
                 notes: {
                     chatbotId,
                     planType,
@@ -72,9 +78,10 @@ export class PaymentService {
                 currency: order.currency,
                 keyId: process.env.RAZORPAY_KEY_ID,
             };
-        } catch (error) {
+        } catch (error: any) {
             console.error('Error creating Razorpay order:', error);
-            throw new Error('Failed to create payment order');
+            // Throw the actual error to be caught by controller
+            throw new Error(error.error?.description || error.message || 'Razorpay Error');
         }
     }
 
@@ -108,13 +115,26 @@ export class PaymentService {
         planType: string,
         paymentId: string,
         orderId: string,
-        amount: number
+        amount: number,
+        email?: string
     ): Promise<void> {
         try {
             const plan = PAYMENT_PLANS[planType];
             if (!plan) {
                 throw new Error('Invalid plan type');
             }
+
+            // 1. Update User-Level Subscription (New Model)
+            if (email) {
+                // Import Model dynamically to avoid circular deps if any
+                const userSubscriptionModel = (await import('../models/user-subscription.model')).default;
+                await userSubscriptionModel.upsert(email, planType);
+                console.log(`✅ User subscription updated for: ${email} -> ${planType}`);
+            }
+
+            // 2. Update Chatbot-Level Subscription (Legacy/Tracking)
+            // We still keep this for now so existing logic doesn't break, 
+            // but the "Source of Truth" for limits will shift to User Subscription.
 
             // Deactivate old subscriptions
             await query(
@@ -124,7 +144,7 @@ export class PaymentService {
                 [chatbotId]
             );
 
-            // Create new subscription
+            // Create new subscription entry
             const subResult = await query(
                 `INSERT INTO subscriptions 
          (chatbot_id, plan_type, chat_limit, price, payment_id, payment_status, is_active)
@@ -135,7 +155,7 @@ export class PaymentService {
 
             const subscriptionId = subResult.rows[0].id;
 
-            // Record transaction
+            // 3. Record transaction
             await query(
                 `INSERT INTO payment_transactions 
          (chatbot_id, subscription_id, payment_gateway, transaction_id, amount, currency, status)
@@ -144,15 +164,17 @@ export class PaymentService {
             );
 
             // Reset chat count in cache
-            await cacheSet(`chatbot:${chatbotId}:count`, '0');
+            if (chatbotId) {
+                await cacheSet(`chatbot:${chatbotId}:count`, '0');
 
-            // Reset in database
-            await query(
-                `UPDATE chat_usage 
-         SET chat_count = 0 
-         WHERE chatbot_id = $1`,
-                [chatbotId]
-            );
+                // Reset in database
+                await query(
+                    `UPDATE chat_usage 
+             SET chat_count = 0 
+             WHERE chatbot_id = $1`,
+                    [chatbotId]
+                );
+            }
 
             console.log(`✅ Payment processed for chatbot: ${chatbotId}, Plan: ${planType}`);
         } catch (error) {

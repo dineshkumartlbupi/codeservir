@@ -50,10 +50,12 @@ const TrainChatbot: React.FC<TrainChatbotProps> = ({ chatbotId, businessName }) 
         try {
             const API_URL = process.env.REACT_APP_API_URL || 'https://codeservir-api.vercel.app';
 
+            const token = localStorage.getItem('token');
             const response = await fetch(`${API_URL}/api/chatbot/${chatbotId}/train`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
                 },
                 body: JSON.stringify({ trainingData: validPairs }),
             });

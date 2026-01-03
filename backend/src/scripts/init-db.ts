@@ -48,11 +48,30 @@ async function initDb() {
                 plan_type VARCHAR(50) DEFAULT 'free',
                 chat_limit INTEGER DEFAULT 1000,
                 price DECIMAL(10, 2) DEFAULT 0,
+                payment_id VARCHAR(255),
+                payment_status VARCHAR(50),
                 is_active BOOLEAN DEFAULT true,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                started_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             );
         `);
         console.log('✅ Chatbot Subscriptions table ready');
+
+        // Payment Transactions Table
+        await query(`
+            CREATE TABLE IF NOT EXISTS payment_transactions (
+                id SERIAL PRIMARY KEY,
+                chatbot_id VARCHAR(255) REFERENCES chatbots(id) ON DELETE CASCADE,
+                subscription_id INTEGER REFERENCES subscriptions(id),
+                payment_gateway VARCHAR(50),
+                transaction_id VARCHAR(255),
+                amount DECIMAL(10, 2),
+                currency VARCHAR(10),
+                status VARCHAR(50),
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
+        `);
+        console.log('✅ Payment Transactions table ready');
 
         // User Subscriptions (Email-based / Account Level)
         await query(`
@@ -69,6 +88,20 @@ async function initDb() {
             );
         `);
         console.log('✅ User Subscriptions table ready');
+
+        // Users Table (New)
+        await query(`
+            CREATE TABLE IF NOT EXISTS users (
+                id VARCHAR(255) PRIMARY KEY,
+                email VARCHAR(255) UNIQUE NOT NULL,
+                password_hash VARCHAR(255) NOT NULL,
+                full_name VARCHAR(255),
+                phone VARCHAR(50),
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
+        `);
+        console.log('✅ Users table ready');
 
         console.log('🎉 Database initialization complete!');
         process.exit(0);

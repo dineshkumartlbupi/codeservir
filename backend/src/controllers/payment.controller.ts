@@ -45,7 +45,10 @@ export class PaymentController {
             });
         } catch (error) {
             console.error('Create order error:', error);
-            res.status(500).json({ error: 'Failed to create payment order' });
+            res.status(500).json({
+                error: 'Failed to create payment order',
+                details: error.message || 'Unknown error'
+            });
         }
     }
 
@@ -83,13 +86,21 @@ export class PaymentController {
                 return;
             }
 
-            // Process payment
+            // Get user email
+            const user = (req as any).user;
+            if (!user || !user.email) {
+                res.status(401).json({ error: 'Unauthorized: User email not found' });
+                return;
+            }
+
+            // Process payment (User-Level Subscription)
             await paymentService.processPayment(
                 chatbotId,
                 planType,
                 paymentId,
                 orderId,
-                amount
+                amount,
+                user.email
             );
 
             res.json({

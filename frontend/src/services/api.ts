@@ -21,6 +21,10 @@ export interface DashboardStats {
     totalConversations: number;
     activeUsers: number;
     responseRate: string;
+    // Optional/Legacy keys for compatibility
+    activeChatbots?: number;
+    planType?: string;
+    totalMessages?: number;
 }
 
 export interface ChatbotLimitResponse {
@@ -57,7 +61,7 @@ export const api = {
     },
 
     // Get all chatbots for an email
-    async getChatbotsByEmail(email: string, token?: string): Promise<{ chatbots: Chatbot[], total: number }> {
+    async getChatbotsByEmail(email: string, token?: string | null): Promise<{ chatbots: Chatbot[], total: number }> {
         try {
             const headers: any = {
                 'Content-Type': 'application/json',
@@ -84,7 +88,7 @@ export const api = {
     },
 
     // Create chatbot
-    async createChatbot(data: any, token?: string): Promise<any> {
+    async createChatbot(data: any, token?: string | null): Promise<any> {
         const headers: any = {
             'Content-Type': 'application/json',
         };
@@ -107,7 +111,7 @@ export const api = {
     },
 
     // Get chatbots (for logged in users)
-    async getChatbots(token?: string): Promise<{ chatbots: Chatbot[] }> {
+    async getChatbots(token?: string | null): Promise<{ chatbots: Chatbot[] }> {
         try {
             const headers: any = {
                 'Content-Type': 'application/json',
@@ -116,7 +120,7 @@ export const api = {
                 headers['Authorization'] = `Bearer ${token}`;
             }
 
-            const response = await fetch(`${API_URL}/api/chatbot/list`, {
+            const response = await fetch(`${API_URL}/api/chatbot`, {
                 method: 'GET',
                 headers,
             });
@@ -133,7 +137,7 @@ export const api = {
     },
 
     // Update chatbot
-    async updateChatbot(id: string, data: any, token?: string): Promise<any> {
+    async updateChatbot(id: string, data: any, token?: string | null): Promise<any> {
         const headers: any = {
             'Content-Type': 'application/json',
         };
@@ -155,7 +159,7 @@ export const api = {
     },
 
     // Delete chatbot
-    async deleteChatbot(id: string, token?: string): Promise<any> {
+    async deleteChatbot(id: string, token?: string | null): Promise<any> {
         const headers: any = {
             'Content-Type': 'application/json',
         };
@@ -176,7 +180,7 @@ export const api = {
     },
 
     // Get dashboard stats
-    async getDashboardStats(token?: string, email?: string): Promise<DashboardStats> {
+    async getDashboardStats(token?: string | null, email?: string): Promise<DashboardStats> {
         try {
             const headers: any = {
                 'Content-Type': 'application/json',
@@ -209,5 +213,25 @@ export const api = {
                 responseRate: '0%'
             };
         }
+    },
+    // Get specific chatbot stats
+    async getChatbotStats(chatbotId: string, token?: string | null): Promise<any> {
+        const headers: any = {
+            'Content-Type': 'application/json',
+        };
+        if (token) {
+            headers['Authorization'] = `Bearer ${token}`;
+        }
+
+        const response = await fetch(`${API_URL}/api/chatbot/${chatbotId}/stats`, {
+            method: 'GET',
+            headers,
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to fetch chatbot stats');
+        }
+
+        return await response.json();
     },
 };

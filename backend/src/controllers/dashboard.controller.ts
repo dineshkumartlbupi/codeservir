@@ -63,10 +63,10 @@ export class DashboardController {
             const planType = subscription?.planType === 'premium' ? 'Premium' : 'Free';
 
             res.json({
-                totalConversations: totalMessages, // Assuming conversation = message for now, or track sep
-                activeChatbots,
-                totalMessages,
-                planType
+                totalChatbots: activeChatbots,
+                totalConversations: totalMessages,
+                activeUsers: 0,
+                responseRate: planType // Using this field to pass Plan Type for now
             });
 
         } catch (error) {

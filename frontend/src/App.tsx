@@ -15,6 +15,8 @@ import LoginPage from './pages/LoginPage';
 import SignupPage from './pages/SignupPage';
 import DashboardPage from './pages/DashboardPage';
 import MyChatbotsPage from './pages/MyChatbotsPage';
+import EditChatbotPage from './pages/EditChatbotPage';
+import ChatbotAnalyticsPage from './pages/ChatbotAnalyticsPage';
 import SettingsPage from './pages/SettingsPage';
 import Navigation from './components/Navigation';
 
@@ -38,6 +40,8 @@ function App() {
             <Route path="/signup" element={<SignupPage />} />
             <Route path="/dashboard" element={<DashboardPage />} />
             <Route path="/my-chatbots" element={<MyChatbotsPage />} />
+            <Route path="/chatbot/:id/edit" element={<EditChatbotPage />} />
+            <Route path="/chatbot/:id/analytics" element={<ChatbotAnalyticsPage />} />
             <Route path="/settings" element={<SettingsPage />} />
           </Routes>
           <Footer />

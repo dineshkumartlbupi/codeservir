@@ -16,9 +16,10 @@ const MyChatbotsPage: React.FC = () => {
     const fetchChatbots = async () => {
         try {
             setLoading(true);
-            const token = await user?.getIdToken();
-            const data = await api.getChatbots(token) as { chatbots: Chatbot[] };
-            setChatbots(data.chatbots || []);
+            const token = localStorage.getItem('token');
+            const data: any = await api.getChatbots(token);
+            const list = Array.isArray(data) ? data : (data.chatbots || []);
+            setChatbots(list);
         } catch (err: any) {
             console.error('Failed to fetch chatbots:', err);
             setError(err.message);
@@ -57,7 +58,7 @@ const MyChatbotsPage: React.FC = () => {
     const handleDelete = async (id: string) => {
         if (window.confirm('Are you sure you want to delete this chatbot?')) {
             try {
-                const token = await user?.getIdToken();
+                const token = localStorage.getItem('token');
                 await api.deleteChatbot(id, token);
                 setChatbots(chatbots.filter(bot => bot.id !== id));
             } catch (err: any) {
@@ -73,7 +74,7 @@ const MyChatbotsPage: React.FC = () => {
         const newStatus = chatbot.status === 'active' ? 'inactive' : 'active';
 
         try {
-            const token = await user?.getIdToken();
+            const token = localStorage.getItem('token');
             await api.updateChatbot(id, { status: newStatus }, token);
             setChatbots(chatbots.map(bot =>
                 bot.id === id ? { ...bot, status: newStatus } : bot
@@ -127,7 +128,7 @@ const MyChatbotsPage: React.FC = () => {
                     <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-white/20">
                         <p className="text-purple-200 text-sm mb-1">Total Conversations</p>
                         <p className="text-3xl font-bold text-white">
-                            {chatbots.reduce((sum, bot) => sum + bot.conversations, 0).toLocaleString()}
+                            {chatbots.reduce((sum, bot) => sum + (bot.conversations || 0), 0).toLocaleString()}
                         </p>
                     </div>
                 </div>
@@ -143,8 +144,8 @@ const MyChatbotsPage: React.FC = () => {
                                         🤖
                                     </div>
                                     <div>
-                                        <h3 className="text-xl font-bold text-white">{chatbot.name}</h3>
-                                        <p className="text-purple-300 text-sm">{chatbot.website}</p>
+                                        <h3 className="text-xl font-bold text-white">{chatbot.businessName || chatbot.name || 'Unnamed Bot'}</h3>
+                                        <p className="text-purple-300 text-sm">{chatbot.websiteUrl || chatbot.website || 'No Website'}</p>
                                     </div>
                                 </div>
                                 <span className={`px-3 py-1 rounded-full text-xs font-semibold ${chatbot.status === 'active'
@@ -162,7 +163,7 @@ const MyChatbotsPage: React.FC = () => {
                             <div className="grid grid-cols-2 gap-4 mb-4">
                                 <div className="bg-white/5 rounded-lg p-3">
                                     <p className="text-purple-300 text-xs mb-1">Conversations</p>
-                                    <p className="text-white font-semibold">{chatbot.conversations.toLocaleString()}</p>
+                                    <p className="text-white font-semibold">{(chatbot.conversations || 0).toLocaleString()}</p>
                                 </div>
                                 <div className="bg-white/5 rounded-lg p-3">
                                     <p className="text-purple-300 text-xs mb-1">Last Active</p>

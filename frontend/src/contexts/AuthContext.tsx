@@ -1,11 +1,18 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { User } from 'firebase/auth';
-import { onAuthStateChange } from '../config/firebase';
+
+// Use a generic interface or match your backend user structure
+export interface AuthUser {
+    id: string;
+    email: string;
+    fullName?: string;
+    [key: string]: any;
+}
 
 interface AuthContextType {
-    user: User | null;
+    user: AuthUser | null;
     loading: boolean;
-    setUser: (user: User | null) => void;
+    setUser: (user: AuthUser | null) => void;
+    logout: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -23,24 +30,47 @@ interface AuthProviderProps {
 }
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
-    const [user, setUser] = useState<User | null>(null);
+    const [user, setUser] = useState<AuthUser | null>(null);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        // Listen to Firebase auth state changes
-        const unsubscribe = onAuthStateChange((firebaseUser) => {
-            setUser(firebaseUser);
-            setLoading(false);
-        });
+        // Check localStorage for user data
+        const storedUser = localStorage.getItem('user');
+        const token = localStorage.getItem('token');
 
-        // Cleanup subscription
-        return () => unsubscribe();
+        if (storedUser && token) {
+            try {
+                setUser(JSON.parse(storedUser));
+            } catch (error) {
+                console.error('Failed to parse user data:', error);
+                localStorage.removeItem('user');
+                localStorage.removeItem('token');
+            }
+        }
+        setLoading(false);
     }, []);
+
+    const logout = async () => {
+        try {
+            const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001';
+            await fetch(`${API_URL}/api/auth/logout`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            });
+        } catch (error) {
+            console.error('Logout failed:', error);
+        }
+
+        localStorage.removeItem('user');
+        localStorage.removeItem('token');
+        setUser(null);
+    };
 
     const value = {
         user,
         loading,
-        setUser
+        setUser,
+        logout
     };
 
     return (

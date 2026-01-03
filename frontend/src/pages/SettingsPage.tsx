@@ -60,8 +60,8 @@ const SettingsPage: React.FC = () => {
                                         key={tab.id}
                                         onClick={() => setActiveTab(tab.id as any)}
                                         className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all ${activeTab === tab.id
-                                                ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white'
-                                                : 'text-purple-200 hover:bg-white/10'
+                                            ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white'
+                                            : 'text-purple-200 hover:bg-white/10'
                                             }`}
                                     >
                                         <span className="text-xl">{tab.icon}</span>
@@ -176,11 +176,11 @@ const SettingsPage: React.FC = () => {
                                         <div className="p-6 bg-white/5 rounded-xl border border-white/10">
                                             <h3 className="text-lg font-semibold text-white mb-2">Change Password</h3>
                                             <p className="text-purple-200 text-sm mb-4">
-                                                {user?.providerData[0]?.providerId === 'google.com'
+                                                {user?.providerData && user.providerData.length > 0 && user.providerData[0]?.providerId === 'google.com'
                                                     ? 'You signed in with Google. Password change is not available.'
                                                     : 'Update your password to keep your account secure.'}
                                             </p>
-                                            {user?.providerData[0]?.providerId !== 'google.com' && (
+                                            {(!user?.providerData || user.providerData.length === 0 || user.providerData[0]?.providerId !== 'google.com') && (
                                                 <button className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium transition-colors">
                                                     Change Password
                                                 </button>

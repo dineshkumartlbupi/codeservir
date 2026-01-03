@@ -214,11 +214,18 @@ export class ChatbotController {
      */
     async listChatbots(req: Request, res: Response): Promise<void> {
         try {
-            // For now return empty or use query param if needed
-            // Frontend uses listByEmail primarily for the new flow
-            res.json({ chatbots: [] });
+            const user = (req as any).user;
+            if (!user || !user.email) {
+                res.status(401).json({ error: 'Unauthorized' });
+                return;
+            }
+
+            const chatbots = await chatbotService.listByEmail(user.email);
+            // Return array directly to match common expectation or object
+            res.json(chatbots);
         } catch (error) {
-            res.status(500).json({ error: 'Failed' });
+            console.error('List chatbots error:', error);
+            res.status(500).json({ error: 'Failed to list chatbots' });
         }
     }
 
