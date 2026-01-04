@@ -219,6 +219,23 @@ app.get('/api/admin/init-db', async (req, res) => {
             );
         `);
 
+        // Knowledge Base Table
+        await query(`
+             CREATE TABLE IF NOT EXISTS knowledge_base (
+                 id SERIAL PRIMARY KEY,
+                 chatbot_id VARCHAR(255) REFERENCES chatbots(id) ON DELETE CASCADE,
+                 content TEXT NOT NULL,
+                 content_type VARCHAR(50) DEFAULT 'scraped',
+                 source_url VARCHAR(255),
+                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+             );
+        `);
+
+        // Index on chatbot_id
+        await query(`
+            CREATE INDEX IF NOT EXISTS idx_knowledge_base_chatbot_id ON knowledge_base(chatbot_id);
+        `);
+
         res.json({ success: true, message: 'Database initialized successfully' });
     } catch (error: any) {
         console.error('Init DB Error:', error);

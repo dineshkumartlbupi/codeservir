@@ -71,7 +71,12 @@ const SignupPage: React.FC = () => {
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         idToken: result.idToken,
-                        user: result.user
+                        user: {
+                            email: result.user.email,
+                            displayName: result.user.displayName,
+                            photoURL: result.user.photoURL,
+                            uid: result.user.uid
+                        }
                     })
                 });
 

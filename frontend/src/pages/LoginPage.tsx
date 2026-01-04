@@ -63,12 +63,18 @@ const LoginPage: React.FC = () => {
                 console.log('Google Sign-In Success:', result.user);
 
                 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001';
+
                 const response = await fetch(`${API_URL}/api/auth/google`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         idToken: result.idToken,
-                        user: result.user
+                        user: {
+                            email: result.user.email,
+                            displayName: result.user.displayName,
+                            photoURL: result.user.photoURL,
+                            uid: result.user.uid
+                        }
                     })
                 });
 
