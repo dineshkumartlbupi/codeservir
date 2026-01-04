@@ -14,14 +14,16 @@ export const authenticateToken = async (req: AuthRequest, res: Response, next: N
     const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
 
     if (!token) {
-        return res.status(401).json({ message: 'Access denied. No token provided.' });
+        res.status(401).json({ message: 'Access denied. No token provided.' });
+        return;
     }
 
     try {
         // Check if token is blacklisted
         const isBlacklisted = await redisClient.get(`blacklist:${token}`);
         if (isBlacklisted) {
-            return res.status(403).json({ message: 'Token is invalid (logged out).' });
+            res.status(403).json({ message: 'Token is invalid (logged out).' });
+            return;
         }
 
         const decoded = jwt.verify(token, JWT_SECRET);
@@ -29,6 +31,7 @@ export const authenticateToken = async (req: AuthRequest, res: Response, next: N
         req.token = token;
         next();
     } catch (error) {
-        return res.status(403).json({ message: 'Invalid token' });
+        res.status(403).json({ message: 'Invalid token' });
+        return;
     }
 };

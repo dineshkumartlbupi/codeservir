@@ -12,13 +12,15 @@ export const signup = async (req: Request, res: Response) => {
         const { email, password, fullName, phone } = req.body;
 
         if (!email || !password || !fullName) {
-            return res.status(400).json({ message: 'Missing required fields' });
+            res.status(400).json({ message: 'Missing required fields' });
+            return;
         }
 
         // Check if user exists
         const existingUser = await userModel.findByEmail(email);
         if (existingUser) {
-            return res.status(400).json({ message: 'User already exists' });
+            res.status(400).json({ message: 'User already exists' });
+            return;
         }
 
         // Hash password
@@ -52,12 +54,14 @@ export const login = async (req: Request, res: Response) => {
 
         const user = await userModel.findByEmail(email);
         if (!user) {
-            return res.status(400).json({ message: 'Invalid credentials' });
+            res.status(400).json({ message: 'Invalid credentials' });
+            return;
         }
 
         const isMatch = await bcrypt.compare(password, user.password_hash);
         if (!isMatch) {
-            return res.status(400).json({ message: 'Invalid credentials' });
+            res.status(400).json({ message: 'Invalid credentials' });
+            return;
         }
 
         const token = jwt.sign({ id: user.id, email: user.email }, JWT_SECRET, { expiresIn: '7d' });
@@ -106,7 +110,8 @@ export const googleAuth = async (req: Request, res: Response) => {
         let fullName = user?.displayName;
 
         if (!email) {
-            return res.status(400).json({ message: 'Invalid Google Token or User Data' });
+            res.status(400).json({ message: 'Invalid Google Token or User Data' });
+            return;
         }
 
         // Check if user exists
