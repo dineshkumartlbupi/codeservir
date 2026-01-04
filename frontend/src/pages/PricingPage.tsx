@@ -1,6 +1,6 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 declare global {
     interface Window {
@@ -68,11 +68,40 @@ const PricingPage: React.FC = () => {
         }
     ];
 
+    const [currentPlan, setCurrentPlan] = useState<string | null>(null);
+
+    useEffect(() => {
+        if (user) {
+            const fetchSub = async () => {
+                try {
+                    const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001';
+                    const res = await fetch(`${API_URL}/api/payment/user-subscription`, {
+                        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                    });
+                    if (res.ok) {
+                        const data = await res.json();
+                        if (data.subscription) {
+                            setCurrentPlan(data.subscription.planType);
+                        }
+                    }
+                } catch (e) {
+                    console.error("Failed to fetch sub", e);
+                }
+            };
+            fetchSub();
+        }
+    }, [user]);
+
     const handleSubscribe = async (plan: any) => {
         if (!user) {
             navigate('/login');
             return;
         }
+
+        if (currentPlan === plan.name.toLowerCase() || (plan.name === 'Starter' && (!currentPlan || currentPlan === 'basic'))) {
+            return; // Already active
+        }
+
 
         if (plan.name === 'Starter') {
             navigate('/create');
@@ -200,54 +229,65 @@ const PricingPage: React.FC = () => {
             <section className="relative py-12 px-4 pb-20">
                 <div className="max-w-7xl mx-auto">
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                        {plans.map((plan, index) => (
-                            <div
-                                key={index}
-                                className={`relative bg-white/10 backdrop-blur-xl rounded-3xl p-8 border transition-all hover:scale-105 ${plan.popular
-                                    ? 'border-purple-400 shadow-2xl shadow-purple-500/50'
-                                    : 'border-white/20'
-                                    }`}
-                            >
-                                {plan.popular && (
-                                    <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                                        <span className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-4 py-1 rounded-full text-sm font-semibold">
-                                            Most Popular
-                                        </span>
-                                    </div>
-                                )}
+                        {plans.map((plan, index) => {
+                            const planTypeMap: { [key: string]: string } = {
+                                'Starter': 'basic',
+                                'Professional': 'pro',
+                                'Enterprise': 'premium'
+                            };
+                            const isCurrent = currentPlan === planTypeMap[plan.name];
 
-                                <div className="text-center mb-8">
-                                    <h3 className="text-2xl font-bold text-white mb-2">{plan.name}</h3>
-                                    <p className="text-purple-200 text-sm mb-4">{plan.description}</p>
-                                    <div className="flex items-baseline justify-center gap-1">
-                                        <span className="text-5xl font-bold text-white">{plan.price}</span>
-                                        <span className="text-purple-300">{plan.period}</span>
-                                    </div>
-                                </div>
-
-                                <ul className="space-y-4 mb-8">
-                                    {plan.features.map((feature, idx) => (
-                                        <li key={idx} className="flex items-center gap-3 text-purple-200">
-                                            <svg className="w-5 h-5 text-green-400 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                                                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                                            </svg>
-                                            {feature}
-                                        </li>
-                                    ))}
-                                </ul>
-
-                                <button
-                                    onClick={() => handleSubscribe(plan)}
-                                    disabled={loading}
-                                    className={`block w-full py-4 rounded-xl font-bold text-center transition-all ${plan.popular
-                                        ? 'bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white shadow-lg'
-                                        : 'bg-white/10 hover:bg-white/20 text-white border border-white/20'
-                                        } disabled:opacity-50 disabled:cursor-not-allowed`}
+                            return (
+                                <div
+                                    key={index}
+                                    className={`relative bg-white/10 backdrop-blur-xl rounded-3xl p-8 border transition-all hover:scale-105 ${plan.popular
+                                        ? 'border-purple-400 shadow-2xl shadow-purple-500/50'
+                                        : 'border-white/20'
+                                        } ${isCurrent ? 'ring-2 ring-green-500 border-green-500/50' : ''}`}
                                 >
-                                    {plan.cta}
-                                </button>
-                            </div>
-                        ))}
+                                    {plan.popular && (
+                                        <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
+                                            <span className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-4 py-1 rounded-full text-sm font-semibold">
+                                                Most Popular
+                                            </span>
+                                        </div>
+                                    )}
+
+                                    <div className="text-center mb-8">
+                                        <h3 className="text-2xl font-bold text-white mb-2">{plan.name}</h3>
+                                        <p className="text-purple-200 text-sm mb-4">{plan.description}</p>
+                                        <div className="flex items-baseline justify-center gap-1">
+                                            <span className="text-5xl font-bold text-white">{plan.price}</span>
+                                            <span className="text-purple-300">{plan.period}</span>
+                                        </div>
+                                    </div>
+
+                                    <ul className="space-y-4 mb-8">
+                                        {plan.features.map((feature, idx) => (
+                                            <li key={idx} className="flex items-center gap-3 text-purple-200">
+                                                <svg className="w-5 h-5 text-green-400 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                                </svg>
+                                                {feature}
+                                            </li>
+                                        ))}
+                                    </ul>
+
+                                    <button
+                                        onClick={() => handleSubscribe(plan)}
+                                        disabled={loading || isCurrent}
+                                        className={`block w-full py-4 rounded-xl font-bold text-center transition-all ${isCurrent
+                                                ? 'bg-green-500/20 text-green-400 cursor-default border border-green-500/30'
+                                                : plan.popular
+                                                    ? 'bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white shadow-lg'
+                                                    : 'bg-white/10 hover:bg-white/20 text-white border border-white/20'
+                                            } disabled:opacity-80 disabled:cursor-not-allowed`}
+                                    >
+                                        {isCurrent ? 'Current Plan' : plan.cta}
+                                    </button>
+                                </div>
+                            )
+                        })}
                     </div>
                 </div>
             </section>

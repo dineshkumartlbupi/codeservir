@@ -13,6 +13,9 @@ router.post('/create-order', authenticateToken, (req, res) => paymentController.
 // Verify payment
 router.post('/verify', authenticateToken, (req, res) => paymentController.verifyPayment(req, res));
 
+// Get user subscription
+router.get('/user-subscription', authenticateToken, (req, res) => paymentController.getUserSubscription(req, res));
+
 // Get subscription details
 router.get('/subscription/:chatbotId', authenticateToken, (req, res) => paymentController.getSubscription(req, res));
 

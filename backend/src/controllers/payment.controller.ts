@@ -115,6 +115,30 @@ export class PaymentController {
     }
 
     /**
+     * Get user active subscription
+     */
+    async getUserSubscription(req: Request, res: Response): Promise<void> {
+        try {
+            const user = (req as any).user;
+            if (!user || !user.email) {
+                res.status(401).json({ error: 'Unauthorized' });
+                return;
+            }
+
+            const userSubscriptionModel = (await import('../models/user-subscription.model')).default;
+            const subscription = await userSubscriptionModel.findByEmail(user.email);
+
+            res.json({
+                success: true,
+                subscription: subscription || null
+            });
+        } catch (error) {
+            console.error('Get user subscription error:', error);
+            res.status(500).json({ error: 'Failed to fetch user subscription' });
+        }
+    }
+
+    /**
      * Get subscription details
      */
     async getSubscription(req: Request, res: Response): Promise<void> {
