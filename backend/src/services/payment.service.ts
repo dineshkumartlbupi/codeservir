@@ -53,19 +53,23 @@ export class PaymentService {
     /**
      * Create Razorpay order
      */
-    async createOrder(chatbotId: string, planType: string): Promise<any> {
+    async createOrder(chatbotId: string | undefined, planType: string): Promise<any> {
         try {
             const plan = PAYMENT_PLANS[planType];
             if (!plan) {
                 throw new Error('Invalid plan type');
             }
 
+            const receiptId = chatbotId
+                ? `rcpt_${Date.now()}_${chatbotId.substring(0, 4)}`
+                : `rcpt_${Date.now()}_acc`;
+
             const options = {
                 amount: plan.price * 100, // Amount in paise
                 currency: plan.currency,
-                receipt: `rcpt_${Date.now()}_${chatbotId.substring(0, 4)}`,
+                receipt: receiptId,
                 notes: {
-                    chatbotId,
+                    chatbotId: chatbotId || 'account_upgrade',
                     planType,
                 },
             };
@@ -111,7 +115,7 @@ export class PaymentService {
      * Process successful payment
      */
     async processPayment(
-        chatbotId: string,
+        chatbotId: string | undefined,
         planType: string,
         paymentId: string,
         orderId: string,
@@ -135,33 +139,38 @@ export class PaymentService {
             // 2. Update Chatbot-Level Subscription (Legacy/Tracking)
             // We still keep this for now so existing logic doesn't break, 
             // but the "Source of Truth" for limits will shift to User Subscription.
+            let subscriptionId = null;
 
-            // Deactivate old subscriptions
-            await query(
-                `UPDATE subscriptions 
-         SET is_active = false 
-         WHERE chatbot_id = $1`,
-                [chatbotId]
-            );
+            if (chatbotId) {
+                // Deactivate old subscriptions
+                await query(
+                    `UPDATE subscriptions 
+             SET is_active = false 
+             WHERE chatbot_id = $1`,
+                    [chatbotId]
+                );
 
-            // Create new subscription entry
-            const subResult = await query(
-                `INSERT INTO subscriptions 
-         (chatbot_id, plan_type, chat_limit, price, payment_id, payment_status, is_active)
-         VALUES ($1, $2, $3, $4, $5, 'completed', true)
-         RETURNING id`,
-                [chatbotId, planType, plan.chatLimit, plan.price, paymentId]
-            );
+                // Create new subscription entry
+                const subResult = await query(
+                    `INSERT INTO subscriptions 
+             (chatbot_id, plan_type, chat_limit, price, payment_id, payment_status, is_active)
+             VALUES ($1, $2, $3, $4, $5, 'completed', true)
+             RETURNING id`,
+                    [chatbotId, planType, plan.chatLimit, plan.price, paymentId]
+                );
 
-            const subscriptionId = subResult.rows[0].id;
+                subscriptionId = subResult.rows[0].id; // only valid if inserted
+            }
 
             // 3. Record transaction
-            await query(
-                `INSERT INTO payment_transactions 
-         (chatbot_id, subscription_id, payment_gateway, transaction_id, amount, currency, status)
-         VALUES ($1, $2, 'razorpay', $3, $4, $5, 'success')`,
-                [chatbotId, subscriptionId, paymentId, amount / 100, plan.currency]
-            );
+            if (chatbotId && subscriptionId) {
+                await query(
+                    `INSERT INTO payment_transactions 
+             (chatbot_id, subscription_id, payment_gateway, transaction_id, amount, currency, status)
+             VALUES ($1, $2, 'razorpay', $3, $4, $5, 'success')`,
+                    [chatbotId, subscriptionId, paymentId, amount / 100, plan.currency]
+                );
+            }
 
             // Reset chat count in cache
             if (chatbotId) {
@@ -176,7 +185,7 @@ export class PaymentService {
                 );
             }
 
-            console.log(`✅ Payment processed for chatbot: ${chatbotId}, Plan: ${planType}`);
+            console.log(`✅ Payment processed for User: ${email}, Chatbot: ${chatbotId}, Plan: ${planType}`);
         } catch (error) {
             console.error('Error processing payment:', error);
             throw new Error('Failed to process payment');

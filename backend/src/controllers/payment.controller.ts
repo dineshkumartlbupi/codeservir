@@ -24,10 +24,11 @@ export class PaymentController {
         try {
             const { chatbotId, planType } = req.body;
 
-            if (!chatbotId || !planType) {
+            // chatbotId is optional for account-level upgrades
+            if (!planType) {
                 res.status(400).json({
                     error: 'Missing required fields',
-                    required: ['chatbotId', 'planType'],
+                    required: ['planType'],
                 });
                 return;
             }
@@ -66,7 +67,7 @@ export class PaymentController {
                 amount,
             } = req.body;
 
-            if (!chatbotId || !planType || !orderId || !paymentId || !signature) {
+            if (!planType || !orderId || !paymentId || !signature) {
                 res.status(400).json({ error: 'Missing required fields' });
                 return;
             }

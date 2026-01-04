@@ -84,32 +84,7 @@ const PricingPage: React.FC = () => {
         try {
             const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001';
 
-            // 1. Get Chatbots (MVP: Select first one or ask user)
-            // For now, let's just get the first chatbot of the user 
-            // NOTE: Ideally we should show a modal to select the chatbot
-            const chatbotsRes = await fetch(`${API_URL}/api/dashboard/stats`, {
-                headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
-            });
-            const chatbotsData = await chatbotsRes.json();
-
-            // This endpoint might not return list of chatbots directly, checking routes/dashboard.routes.ts might be needed.
-            // Assuming we might need a specific route, but let's try to list chatbots.
-            // Actually, /api/chatbot might accept GET to list
-            const listRes = await fetch(`${API_URL}/api/chatbot`, {
-                headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
-            });
-            const listData = await listRes.json();
-
-            let chatbotId = '';
-            if (listData && listData.length > 0) {
-                chatbotId = listData[0].id; // Pick first for MVP
-            } else {
-                alert('Please create a chatbot first to upgrade.');
-                navigate('/create');
-                return;
-            }
-
-            // 2. Create Order
+            // 1. Create Order (Account Level Upgrade)
             const orderRes = await fetch(`${API_URL}/api/payment/create-order`, {
                 method: 'POST',
                 headers: {
@@ -117,7 +92,7 @@ const PricingPage: React.FC = () => {
                     'Authorization': `Bearer ${localStorage.getItem('token')}`
                 },
                 body: JSON.stringify({
-                    chatbotId: chatbotId,
+                    // No chatbotId needed for account upgrade
                     planType: (() => {
                         const name = plan.name.toLowerCase();
                         if (name === 'starter') return 'basic';
@@ -136,7 +111,7 @@ const PricingPage: React.FC = () => {
 
             const { order } = orderData;
 
-            // 3. Open Razorpay
+            // 2. Open Razorpay
             const options = {
                 key: order.keyId,
                 amount: order.amount,
@@ -145,7 +120,7 @@ const PricingPage: React.FC = () => {
                 description: `${plan.name} Subscription`,
                 order_id: order.orderId,
                 handler: async function (response: any) {
-                    // 4. Verify Payment
+                    // 3. Verify Payment
                     try {
                         const verifyRes = await fetch(`${API_URL}/api/payment/verify`, {
                             method: 'POST',
@@ -154,7 +129,6 @@ const PricingPage: React.FC = () => {
                                 'Authorization': `Bearer ${localStorage.getItem('token')}`
                             },
                             body: JSON.stringify({
-                                chatbotId,
                                 planType: (() => {
                                     const name = plan.name.toLowerCase();
                                     if (name === 'starter') return 'basic';
