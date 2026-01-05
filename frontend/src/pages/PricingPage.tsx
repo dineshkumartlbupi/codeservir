@@ -132,10 +132,14 @@ const PricingPage: React.FC = () => {
                 })
             });
 
+
             const orderData = await orderRes.json();
 
             if (!orderData.success) {
-                throw new Error(orderData.error || 'Failed to create order');
+                const errorMessage = orderData.details
+                    ? `${orderData.error}: ${orderData.details}`
+                    : orderData.error || 'Failed to create order';
+                throw new Error(errorMessage);
             }
 
             const { order } = orderData;
@@ -277,10 +281,10 @@ const PricingPage: React.FC = () => {
                                         onClick={() => handleSubscribe(plan)}
                                         disabled={loading || isCurrent}
                                         className={`block w-full py-4 rounded-xl font-bold text-center transition-all ${isCurrent
-                                                ? 'bg-green-500/20 text-green-400 cursor-default border border-green-500/30'
-                                                : plan.popular
-                                                    ? 'bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white shadow-lg'
-                                                    : 'bg-white/10 hover:bg-white/20 text-white border border-white/20'
+                                            ? 'bg-green-500/20 text-green-400 cursor-default border border-green-500/30'
+                                            : plan.popular
+                                                ? 'bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white shadow-lg'
+                                                : 'bg-white/10 hover:bg-white/20 text-white border border-white/20'
                                             } disabled:opacity-80 disabled:cursor-not-allowed`}
                                     >
                                         {isCurrent ? 'Current Plan' : plan.cta}

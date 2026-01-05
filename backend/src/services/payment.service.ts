@@ -55,6 +55,10 @@ export class PaymentService {
      */
     async createOrder(chatbotId: string | undefined, planType: string): Promise<any> {
         try {
+            if (!this.razorpay) {
+                throw new Error('Razorpay client not initialized. Check server environment variables.');
+            }
+
             const plan = PAYMENT_PLANS[planType];
             if (!plan) {
                 throw new Error('Invalid plan type');
