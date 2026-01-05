@@ -20,6 +20,7 @@ import MyChatbotsPage from './pages/MyChatbotsPage';
 import EditChatbotPage from './pages/EditChatbotPage';
 import ChatbotAnalyticsPage from './pages/ChatbotAnalyticsPage';
 import SettingsPage from './pages/SettingsPage';
+import ChatbotDetailsPage from './pages/ChatbotDetailsPage';
 import Navigation from './components/Navigation';
 
 function App() {
@@ -45,6 +46,7 @@ function App() {
             <Route path="/dashboard" element={<DashboardPage />} />
             <Route path="/my-chatbots" element={<MyChatbotsPage />} />
             <Route path="/chatbot/:id/edit" element={<EditChatbotPage />} />
+            <Route path="/chatbot/:id/details" element={<ChatbotDetailsPage />} />
             <Route path="/chatbot/:id/analytics" element={<ChatbotAnalyticsPage />} />
             <Route path="/settings" element={<SettingsPage />} />
           </Routes>

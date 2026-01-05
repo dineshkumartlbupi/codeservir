@@ -100,14 +100,14 @@ const MyChatbotsPage: React.FC = () => {
         <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 pt-20">
             <div className="max-w-7xl mx-auto px-4 py-12">
                 {/* Header */}
-                <div className="flex items-center justify-between mb-8">
-                    <div>
+                <div className="flex flex-col sm:flex-row items-center justify-between mb-8 gap-4">
+                    <div className="text-center sm:text-left">
                         <h1 className="text-4xl font-bold text-white mb-2">My Chatbots 🤖</h1>
                         <p className="text-purple-200">Manage and configure your AI chatbots</p>
                     </div>
                     <Link
                         to="/create"
-                        className="px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-xl font-semibold transition-all hover:scale-105 shadow-lg"
+                        className="w-full sm:w-auto text-center px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-xl font-semibold transition-all hover:scale-105 shadow-lg"
                     >
                         ➕ Create New Chatbot
                     </Link>
@@ -174,10 +174,10 @@ const MyChatbotsPage: React.FC = () => {
                             {/* Actions */}
                             <div className="flex gap-2">
                                 <Link
-                                    to={`/chatbot/${chatbot.id}/edit`}
+                                    to={`/chatbot/${chatbot.id}/details`}
                                     className="flex-1 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium transition-colors text-center"
                                 >
-                                    ✏️ Edit
+                                    ⚙️ Manage
                                 </Link>
                                 <Link
                                     to={`/chatbot/${chatbot.id}/analytics`}

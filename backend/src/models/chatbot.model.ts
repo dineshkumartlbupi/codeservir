@@ -26,7 +26,13 @@ export interface Chatbot {
     secondaryColor: string;
     createdAt: Date;
     status: string;
+    conversations?: number; // Optional as it comes from join
+    lastActive?: Date;     // Optional as it comes from join
 }
+
+// ... existing code ...
+
+
 
 class ChatbotModel {
     /**
@@ -160,7 +166,11 @@ class ChatbotModel {
      */
     async findByEmail(email: string): Promise<Chatbot[]> {
         const result = await query(
-            `SELECT * FROM chatbots WHERE contact_email = $1 ORDER BY created_at DESC`,
+            `SELECT c.*, COALESCE(cu.chat_count, 0) as conversations, COALESCE(cu.last_chat_at, c.created_at) as last_active 
+             FROM chatbots c
+             LEFT JOIN chat_usage cu ON c.id = cu.chatbot_id
+             WHERE c.contact_email = $1 
+             ORDER BY c.created_at DESC`,
             [email]
         );
         return result.rows.map(this.mapRowToChatbot);
@@ -238,7 +248,9 @@ class ChatbotModel {
             primaryColor: row.primary_color,
             secondaryColor: row.secondary_color,
             createdAt: row.created_at,
-            status: row.status
+            status: row.status,
+            conversations: parseInt(row.conversations || '0'),
+            lastActive: row.last_active
         };
     }
 }

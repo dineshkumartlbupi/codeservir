@@ -17,6 +17,7 @@ const DashboardPage: React.FC = () => {
     const [loading, setLoading] = useState(true);
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [error, setError] = useState('');
+    const [recentConversations, setRecentConversations] = useState<any[]>([]);
 
     useEffect(() => {
         fetchInitialData();
@@ -26,6 +27,7 @@ const DashboardPage: React.FC = () => {
     useEffect(() => {
         if (selectedChatbotId === 'all') {
             fetchAggregateStats();
+            setRecentConversations([]);
         } else {
             fetchChatbotStats(selectedChatbotId);
         }
@@ -36,13 +38,7 @@ const DashboardPage: React.FC = () => {
         try {
             setLoading(true);
             const token = localStorage.getItem('token');
-            const chatbotsData = await api.getChatbots(token); // Or getChatbotsByEmail if strictly by email
-            // getChatbots returns { chatbots: [] } or just array based on implementation, let's verify usage
-            // The previous api file showed getChatbots returning { chatbots: [] }
-            // But wait, listChatbots in controller returns array directly?
-            // Let's assume standardized response or handle both.
-            // Actually API service for getChatbots returns { chatbots: [] }
-
+            const chatbotsData: any = await api.getChatbots(token);
             const list = Array.isArray(chatbotsData) ? chatbotsData : (chatbotsData.chatbots || []);
             setChatbots(list);
 
@@ -62,10 +58,10 @@ const DashboardPage: React.FC = () => {
             const data = await api.getDashboardStats(token, user?.email || undefined);
             if (data) {
                 setStats({
-                    totalChatbots: data.totalChatbots !== undefined ? data.totalChatbots : (data.activeChatbots || 0), // Fallback for safety
+                    totalChatbots: data.totalChatbots !== undefined ? data.totalChatbots : (data.activeChatbots || 0),
                     totalConversations: data.totalConversations || 0,
                     activeUsers: data.activeUsers || 0,
-                    responseRate: data.responseRate || data.planType || '0%' // Fallback
+                    responseRate: data.responseRate || data.planType || '0%'
                 });
             }
         } catch (err) {
@@ -83,16 +79,27 @@ const DashboardPage: React.FC = () => {
 
             if (data && data.success && data.stats) {
                 const s = data.stats;
-                // Map specific stats to dashboard view cards
-                // activeUsers -> mapped to Chat Usage
-                // responseRate -> mapped to Plan Type
                 setStats({
-                    totalChatbots: 1, // Focus on 1
+                    totalChatbots: 1,
                     totalConversations: s.chatCount || 0,
-                    activeUsers: s.chatLimit || 0, // Semantic override for display
-                    responseRate: s.planType || 'Free' // Semantic override
+                    activeUsers: s.chatLimit || 0,
+                    responseRate: s.planType || 'Free'
                 });
             }
+
+            // Fetch Recent History
+            try {
+                const historyData = await api.getChatHistory(id, 5, token);
+                if (historyData?.success && historyData.history) {
+                    setRecentConversations(historyData.history);
+                } else {
+                    setRecentConversations([]);
+                }
+            } catch (ignore) {
+                console.warn("Failed to fetch history for dashboard");
+                setRecentConversations([]);
+            }
+
         } catch (err) {
             console.error(err);
         } finally {
@@ -116,12 +123,6 @@ const DashboardPage: React.FC = () => {
             { label: 'Status', value: 'Active', icon: '✅', color: 'from-green-600 to-emerald-600' },
             { label: 'Last Active', value: 'Just now', icon: '🕒', color: 'from-orange-600 to-yellow-600' },
         ];
-
-    const recentChats = [
-        { id: 1, chatbot: 'Support Bot', user: 'John Doe', message: 'How do I reset my password?', time: '5 min ago' },
-        { id: 2, chatbot: 'Sales Bot', user: 'Jane Smith', message: 'What are your pricing plans?', time: '12 min ago' },
-        { id: 3, chatbot: 'Support Bot', user: 'Mike Johnson', message: 'I need help with integration', time: '1 hour ago' },
-    ];
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 pt-20">
@@ -182,8 +183,8 @@ const DashboardPage: React.FC = () => {
                         />
 
                         <div className="mt-8 flex justify-end">
-                            <Link to={`/chatbot/${selectedChatbot.id}/settings`} className="text-purple-300 hover:text-white underline">
-                                Go to Advanced Settings &rarr;
+                            <Link to={`/chatbot/${selectedChatbot.id}/details`} className="text-purple-300 hover:text-white underline">
+                                Go to Dashboard & Details &rarr;
                             </Link>
                         </div>
                     </div>
@@ -233,21 +234,29 @@ const DashboardPage: React.FC = () => {
                                 <span className="text-purple-400 text-sm">Real-time updates</span>
                             </div>
                             <div className="space-y-4">
-                                {recentChats.map((chat) => (
-                                    <div key={chat.id} className="flex items-start gap-4 p-4 bg-white/5 rounded-xl hover:bg-white/10 transition-colors border border-white/5">
-                                        <div className="w-10 h-10 rounded-full bg-gradient-to-r from-purple-600 to-pink-600 flex items-center justify-center text-white font-bold shadow-md">
-                                            {chat.user.charAt(0)}
-                                        </div>
-                                        <div className="flex-1">
-                                            <div className="flex items-center justify-between mb-1">
-                                                <p className="text-white font-semibold">{chat.user}</p>
-                                                <span className="text-purple-300 text-xs">{chat.time}</span>
-                                            </div>
-                                            <p className="text-purple-400 text-sm mb-1">{chat.chatbot}</p>
-                                            <p className="text-purple-200 text-sm opacity-80">{chat.message}</p>
-                                        </div>
+                                {recentConversations.length === 0 ? (
+                                    <div className="text-purple-300 text-center py-4">
+                                        {selectedChatbotId === 'all' ? 'Select a chatbot to view recent conversations.' : 'No recent conversations found.'}
                                     </div>
-                                ))}
+                                ) : (
+                                    recentConversations.map((chat) => (
+                                        <div key={chat.id} className="flex items-start gap-4 p-4 bg-white/5 rounded-xl hover:bg-white/10 transition-colors border border-white/5">
+                                            <div className="w-10 h-10 rounded-full bg-gradient-to-r from-purple-600 to-pink-600 flex items-center justify-center text-white font-bold shadow-md">
+                                                👤
+                                            </div>
+                                            <div className="flex-1">
+                                                <div className="flex items-center justify-between mb-1">
+                                                    <p className="text-white font-semibold">User</p>
+                                                    <span className="text-purple-300 text-xs">
+                                                        {new Date(chat.created_at).toLocaleTimeString()}
+                                                    </span>
+                                                </div>
+                                                <p className="text-purple-400 text-sm mb-1">{selectedChatbot?.businessName}</p>
+                                                <p className="text-purple-200 text-sm opacity-80 line-clamp-2">{chat.user_message}</p>
+                                            </div>
+                                        </div>
+                                    ))
+                                )}
                             </div>
                         </div>
                     </>

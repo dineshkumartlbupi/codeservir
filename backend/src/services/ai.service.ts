@@ -184,9 +184,12 @@ export class AIService {
                 const topResult = results[0];
 
                 if (topResult.type === 'manual_qa') {
-                    // Manual QA format is usually "Question\nAnswer". 
-                    // We can try to strip the question if it's very similar, or just return the block.
-                    // For now, let's return it as is but cleanly.
+                    // Manual QA format is "Question\nAnswer". 
+                    // We extract just the Answer part for a cleaner response.
+                    const parts = topResult.content.split('\n');
+                    if (parts.length >= 2) {
+                        return parts.slice(1).join('\n').trim();
+                    }
                     return topResult.content;
                 }
 

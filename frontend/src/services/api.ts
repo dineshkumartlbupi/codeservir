@@ -234,4 +234,45 @@ export const api = {
 
         return await response.json();
     },
+    // Get single chatbot details
+    async getChatbot(id: string, token?: string | null): Promise<any> {
+        const headers: any = {
+            'Content-Type': 'application/json',
+        };
+        if (token) {
+            headers['Authorization'] = `Bearer ${token}`;
+        }
+
+        const response = await fetch(`${API_URL}/api/chatbot/${id}`, {
+            method: 'GET',
+            headers,
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to fetch chatbot details');
+        }
+
+        return await response.json();
+    },
+
+    // Get chat history
+    async getChatHistory(chatbotId: string, limit: number = 50, token?: string | null): Promise<any> {
+        const headers: any = {
+            'Content-Type': 'application/json',
+        };
+        if (token) {
+            headers['Authorization'] = `Bearer ${token}`;
+        }
+
+        const response = await fetch(`${API_URL}/api/chat/${chatbotId}/history?limit=${limit}`, {
+            method: 'GET',
+            headers,
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to fetch chat history');
+        }
+
+        return await response.json();
+    },
 };
