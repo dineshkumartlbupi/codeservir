@@ -48,6 +48,36 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             }
         }
         setLoading(false);
+
+        // Setup Fetch Interceptor for 401/403
+        const originalFetch = window.fetch;
+        window.fetch = async (...args) => {
+            try {
+                const response = await originalFetch(...args);
+                if (response.status === 401 || response.status === 403) {
+                    const url = typeof args[0] === 'string' ? args[0] : (args[0] as Request).url;
+                    // Only logout if request is to our API
+                    const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001';
+                    if (url.includes(API_URL) || url.includes('/api/')) {
+                        console.warn('Session expired or unauthorized. Logging out...');
+                        localStorage.removeItem('user');
+                        localStorage.removeItem('token');
+                        setUser(null);
+                        // Optional: Redirect to login if not already there
+                        if (!window.location.pathname.includes('/login')) {
+                            window.location.href = '/login';
+                        }
+                    }
+                }
+                return response;
+            } catch (error) {
+                throw error;
+            }
+        };
+
+        return () => {
+            window.fetch = originalFetch;
+        };
     }, []);
 
     const logout = async () => {

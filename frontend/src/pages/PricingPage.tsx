@@ -112,7 +112,6 @@ const PricingPage: React.FC = () => {
 
         try {
             const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001';
-
             // 1. Create Order (Account Level Upgrade)
             const orderRes = await fetch(`${API_URL}/api/payment/create-order`, {
                 method: 'POST',
