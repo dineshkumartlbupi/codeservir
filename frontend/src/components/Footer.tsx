@@ -58,6 +58,8 @@ const Footer: React.FC = () => {
                             <li><Link to="/contact" className="text-purple-200 hover:text-white text-sm transition-colors">Contact</Link></li>
                             <li><Link to="/privacy-policy" className="text-purple-200 hover:text-white text-sm transition-colors">Privacy Policy</Link></li>
                             <li><Link to="/terms-of-service" className="text-purple-200 hover:text-white text-sm transition-colors">Terms of Service</Link></li>
+                            <li><Link to="/shipping-policy" className="text-purple-200 hover:text-white text-sm transition-colors">Shipping Policy</Link></li>
+                            <li><Link to="/refund-policy" className="text-purple-200 hover:text-white text-sm transition-colors">Cancellation & Refunds</Link></li>
                         </ul>
                     </div>
                 </div>
