@@ -101,15 +101,11 @@ const PricingPage: React.FC = () => {
         if (currentPlan === plan.name.toLowerCase() || (plan.name === 'Starter' && (!currentPlan || currentPlan === 'basic'))) {
             return; // Already active
         }
-
-
         if (plan.name === 'Starter') {
             navigate('/create');
             return;
         }
-
         setLoading(true);
-
         try {
             const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001';
             // 1. Create Order (Account Level Upgrade)

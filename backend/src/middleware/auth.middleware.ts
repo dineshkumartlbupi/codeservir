@@ -20,10 +20,15 @@ export const authenticateToken = async (req: AuthRequest, res: Response, next: N
 
     try {
         // Check if token is blacklisted
-        const isBlacklisted = await redisClient.get(`blacklist:${token}`);
-        if (isBlacklisted) {
-            res.status(403).json({ message: 'Token is invalid (logged out).' });
-            return;
+        try {
+            const isBlacklisted = await redisClient.get(`blacklist:${token}`);
+            if (isBlacklisted) {
+                res.status(403).json({ message: 'Token is invalid (logged out).' });
+                return;
+            }
+        } catch (redisError) {
+            console.error('Redis blacklist check warning:', redisError);
+            // Fail open: If Redis is down, assume token is valid if signature matches
         }
 
         const decoded = jwt.verify(token, JWT_SECRET);
